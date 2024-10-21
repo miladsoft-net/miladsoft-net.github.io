@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miladsoft</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background: #022229;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .welcome {
+            text-align: center;
+            font-size: 2.5rem;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        .thank-you {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            animation: fadeIn 3s ease-in-out;
+        }
+
+        .info {
+            margin-top: 40px;
+            font-size: 1rem;
+            padding: 0 20px;
+            text-align: center;
+            max-width: 600px;
+            animation: fadeIn 4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader {
+            margin-top: 50px;
+            border: 5px solid #083b46;
+            border-top: 5px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome">
+        Welcome to Miladsoft.net
+    </div>
+
+    <div class="thank-you">
+        We're building something amazing for you!
+    </div>
+
+    <div class="loader"></div>
+
+    <div class="info">
+        Thank you for your patience. We are currently working on launching our platform where you can find and purchase software products from Miladsoft, with full support for cryptocurrency payments.
+    </div>
+
+</body>
+</html>
