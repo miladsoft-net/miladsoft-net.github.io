@@ -1,0 +1,42 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+
+export async function getStaticPaths() {
+    const products = await Astro.glob('../../contents/products/*.md');
+    
+    return products.map(product => ({
+        params: {
+            slug: product.file.split('/').pop()?.replace('.md', '')
+        },
+        props: { product }
+    }));
+}
+
+const { product } = Astro.props;
+---
+
+<Layout>
+    <Header />
+    <main class="max-w-7xl mx-auto px-4 py-20"></main>
+        <div class="grid md:grid-cols-2 gap-8">
+            <div>
+                <img src={product.frontmatter.image} 
+                     alt={product.frontmatter.title}
+                     class="w-full rounded-lg"/>
+            </div>
+            <div>
+                <h1 class="text-4xl font-bold mb-4">{product.frontmatter.title}</h1>
+                <p class="text-3xl font-bold text-indigo-600 mb-4">
+                    ${product.frontmatter.price}
+                </p>
+                <div class="prose max-w-none mb-8">
+                    <product.Content />
+                </div>
+                <button class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+    </main>
+</Layout>

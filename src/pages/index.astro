@@ -3,10 +3,20 @@ import Features from '../components/Features.astro';
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<Layout>
+<BaseLayout>
 	<Header />
 	<Hero />
 	<Features />
-</Layout>
+</BaseLayout>
+
+<script>
+  import Swup from 'swup';
+  import SwupFadeTheme from '@swup/fade-theme';
+  const swup = new Swup({
+    plugins: [new SwupFadeTheme()],
+    containers: ['#swup']
+  });
+</script>
