@@ -1,0 +1,45 @@
+---
+title: "About Miladsoft"
+description: "Miladsoft，15 年毕业于西南大学计算机专业，Laravel 爱好者；目前靠 Go 养家糊口，抽空学习 Rust，全职远程中"
+pubDate: "2019-03-26 18:00:48"
+category: "life"
+banner: "@images/banners/_1554874559_RUE1L2EnwC.png"
+tags: ["life"]
+oldViewCount: 8084
+oldKeywords: ["Miladsoft,二愣的闲谈杂鱼"]
+---
+
+Miladsoft，15 年毕业于西南大学计算机专业，Laravel 爱好者；目前靠 Go 养家糊口，抽空学习 Rust，全职远程中。由于看起来像二愣，说起话来也像二愣，朋友们都叫我二愣。
+
+喜欢捣鼓各种工具，但效率也不高；喜欢买书，一定是纸质书籍，爱看小文学，伪文艺青年，你也可以查看 [我的阅读清单](https://miladsoft.net/posts/my-books)；性格有点内向，喜欢写写写写，虽然文笔也不好，有时候也爱 [发发闹骚](https://miladsoft.net/categories/life)，欢迎大家关注我的 GitHub [https://github.com/miladsoft](https://github.com/miladsoft)。
+
+如果你想了解我更多的信息，这里有一些我觉得写得还不错的文章，http://miladsoft.net/posts#selected-articel 。
+
+> 注：我使用 Bear 写每一篇博客，所有的博客内容均没有 AI 参与。
+
+## 折腾 & 其他
+
+*  [🧚🏾 The Best Image OCR SDK For BAT](https://github.com/miladsoft/ocr)  集成腾讯、阿里、百度的文字识别 SDK
+*  [📦 一个简单的依赖注入容器（from Laravel Container）](https://github.com/miladsoft/easy-container)
+*  [🍡 Laravel tips in terminal](https://github.com/miladsoft/laravel-tips)
+*  [🥑 Laravel Tips In Raycast](https://github.com/miladsoft/laravel-tips-raycast)
+*  [❄️ 雪花算法的 PHP 实现](https://miladsoft.net/posts/php-id-generator-based-on-snowflake-algorithm)
+*  [🌨️ 雪花算法的 Golang 实现](https://miladsoft.net/posts/golang-snowflake)
+*  [🌰 Wakeup](https://github.com/miladsoft/wakeup) Use AI to create admirable images to surprise your every morning
+*  [📰 RESTful API 设计规范](https://miladsoft.net/posts/the-resetful-api-design-specification)
+*  [🐶 Readog is a browser extension that can save your links to any platform](https://github.com/miladsoft/readog)
+*  [🎈 An beautiful blog built with Astro](https://github.com/miladsoft/gblog)
+
+## 关于这个博客
+
+六年前我将我的博客迁移到 Laravel & Vue 平台，更早的博客文章在迁移过程中丢失，你可以从这里看到[这里](https://miladsoft.net/posts/the-about-gblog/)当时的记录。 最近我又将博客迁移到 Astro 平台(见[Blog 的延续](https://miladsoft.net/posts/blog-3/))，评论数据又丢了，好在是博客内容现在已经全部托管到 GitHub，这次该是丢不了了。
+
+如果你喜欢这个博客，你可以参考 [这个仓库](https://github.com/miladsoft/gblog) 一键部署一个你自己的。
+
+## 联系我
+
+最近经常在[刷推](https://twitter.com/miladsoft)，你也可以在下面的网站或联系方式中找到我。
+
+* [Laravel China](https://learnku.com/users/5359)
+* Email: miladsoft@gmail.com
+* WechatID: Youji_
