@@ -1,110 +1,82 @@
-import type { NavigationLink, Site } from './types.ts'
+import type {
+  LicenseConfig,
+  NavBarConfig,
+  ProfileConfig,
+  SiteConfig,
+} from './types/config'
+import { LinkPreset } from './types/config'
 
-export const SITE: Site = {
-    author: 'Miladsoft',
-    url: 'https://miladsoft.net',
-    title: 'Miladsoft',
-    description: 'Miladsoft delivers innovative software solutions, specializing in user-friendly applications, secure systems, and cutting-edge digital tools to empower businesses and individuals.',
-    shortDescription: '',
+export const siteConfig: SiteConfig = {
+  title: 'Miladsoft',
+  subtitle: 'Miladsoft website',
+  lang: 'en',         // 'en', 'zh_CN', 'zh_TW', 'ja', 'ko'
+  themeColor: {
+    hue: 250,         // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
+    fixed: false,     // Hide the theme color picker for visitors
+  },
+  banner: {
+    enable: true,
+    src: 'assets/images/banner.jpg',   // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+    position: 'center',      // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
+    credit: {
+      enable: false,         // Display the credit text of the banner image
+      text: '',              // Credit text to be displayed
+      url: ''                // (Optional) URL link to the original artwork or artist's page
+    }
+  },
+  toc: {
+    enable: true,           // Display the table of contents on the right side of the post
+    depth: 2                // Maximum heading depth to show in the table, from 1 to 3
+  },
+  favicon: [    // Leave this array empty to use the default favicon
+    // {
+    //   src: '/favicon/icon.png',    // Path of the favicon, relative to the /public directory
+    //   theme: 'light',              // (Optional) Either 'light' or 'dark', set only if you have different favicons for light and dark mode
+    //   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
+    // }
+  ]
 }
 
-export const NavigationLinks: NavigationLink[] = [
-    { name: 'Posts', url: '/posts' },
-    { name: 'Category', url: '/categories' },
-    { name: 'Timeline', url: '/timeline' },
-    { name: 'About', url: '/posts/about-miladsoft' },
-    { name: 'Friends', url: '/friends' },
-]
-
-export const FooterLinks = [
+export const navBarConfig: NavBarConfig = {
+  links: [
+    LinkPreset.Home,
+    LinkPreset.Archive,
+    LinkPreset.About,
     {
-        section: 'Blog',
-        links: [
-            { name: 'Posts', url: '/posts' },
-            { name: 'Timeline', url: '/timeline' },
-            { name: 'Categories', url: '/categories' },
-            { name: 'About Me', url: '/posts/about-miladsoft' },
-        ],
+      name: 'GitHub',
+      url: 'https://github.com/miladsoft-net',     // Internal links should not include the base path, as it is automatically added
+      external: true,                               // Show an external link icon and will open in a new tab
     },
-    {
-        section: 'Other',
-        links: [
-            { name: 'RSS', url: '/rss.xml' },
-            { name: 'Site Map', url: '/sitemap-index.xml' },
-            { name: 'Twitter', url: 'https://x.com/miladsoft' },
-        ],
-    },
-]
-
-export const Settings = {
-    GoogleAnalytics: {
-        enable: false,
-        id: 'G-TKQ4L3ZDSF',
-    },
-
-    // See https://github.com/umami-software/umami
-    UmamiAnalytics: {
-        enable: true,
-        dataWebsiteID: 'bf63658a-9418-4f39-a6a1-5a0cedb6e429',
-    },
-
-    Comment: {
-        // todo: should I use meta or process?
-        // process reports an error when used locally,
-        // and meta cannot retrieve environment variables in Cloudflare environment.
-        // enable: !!(import.meta.env.COMMENT_ENABLE),
-        enable: !!(process.env.COMMENT_ENABLE),
-
-        // please visit https://giscus.app/ to learn how to configure it.
-        // You can also check out this article: https://liruifengv.com/posts/add-comments-to-astro/.
-        giscus: {
-            repo: 'miladsoft/gblog',
-            repoId: 'MDEwOlJlcG9zaXRvcnkxMjcyODI0NzA',
-            category: 'Announcements',
-            categoryId: 'DIC_kwDOB5YtJs4CfZnX',
-            darkThem: 'noborder_gray',
-            lightThem: 'light',
-        },
-    },
-
-    Assets: {
-        // If you don't want to upload the build assert(image/js/css/etc...) to anywhere, just set this to false
-        uploadAssetsToS3: !!(process.env.S3_ENABLE),
-        config: {
-            // see https://github.com/syhily/astro-uploader to get how to configure the uploader,
-            // The following configuration will upload the compiled `assets` folder to S3 or R2.
-            // You can set a separate domain for it so that you can access all resources using a CDN domain name.
-            //
-            // For example: https://images.miladsoft.net/gblog/assets/brand-logo.webp
-            //
-            // Note that you may also need to modify `build.assetsPrefix` in `astro.config.mjs` if you want to
-            // automatically replace all images/js/css with a CDN link.
-            paths: ['assets'],
-            endpoint: process.env.S3_ENDPOINT as string,
-            bucket: process.env.S3_BUCKET as string,
-            accessKey: process.env.S3_ACCESS_KEY as string,
-            secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
-            root: 'gblog',
-        },
-    },
+  ],
 }
 
-export const SEO = {
-    title: SITE.title,
-    description: SITE.description,
-    structuredData: {
-        '@context': 'https://schema.org',
-        '@type': 'WebPage',
-        'inLanguage': 'en-US',
-        '@id': SITE.url,
-        'url': SITE.url,
-        'name': SITE.title,
-        'description': SITE.description,
-        'isPartOf': {
-            '@type': 'WebSite',
-            'url': SITE.url,
-            'name': SITE.title,
-            'description': SITE.description,
-        },
+export const profileConfig: ProfileConfig = {
+  avatar: 'assets/images/angor.svg',  // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+  name: 'Angor',
+  bio: 'P2P Funding Protocol',
+  links: [
+    {
+      name: 'Angor',
+      icon: 'fa6-brands:github',       // Visit https://icones.js.org/ for icon codes
+                                        // You will need to install the corresponding icon set if it's not already included
+                                        // `pnpm add @iconify-json/<icon-set-name>`
+      url: 'https://angor.io',
     },
+    {
+      name: 'Hub',
+      icon: 'fa6-brands:github',
+      url: 'https://hub.angor.io',
+    },
+    {
+      name: 'Docs',
+      icon: 'fa6-brands:github',
+      url: 'https://docs.angor.io',
+    },
+  ],
+}
+
+export const licenseConfig: LicenseConfig = {
+  enable: true,
+  name: 'MIT',
+  url: 'https://github.com/block-core/angor/blob/main/LICENSE',
 }
