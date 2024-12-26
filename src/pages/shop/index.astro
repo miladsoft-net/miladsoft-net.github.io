@@ -1,6 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Header from '../../components/Header.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const products = await Astro.glob('../../contents/products/*.md');
@@ -12,10 +10,9 @@ const processedProducts = products.map(product => ({
 ---
 
 <BaseLayout>
-    <Header />
     <main class="max-w-7xl mx-auto px-4 py-20">
         <h1 class="text-4xl font-bold mb-8">Shop</h1>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {processedProducts.map(product => (
                 <div class="border rounded-lg overflow-hidden shadow-sm">
                     <img src={product.frontmatter.image} alt={product.frontmatter.title} 
@@ -42,11 +39,3 @@ const processedProducts = products.map(product => ({
     </main>
 </BaseLayout>
 
-<script>
-  import Swup from 'swup';
-  import SwupFadeTheme from '@swup/fade-theme';
-  const swup = new Swup({
-    plugins: [new SwupFadeTheme()],
-    containers: ['#swup']
-  });
-</script>

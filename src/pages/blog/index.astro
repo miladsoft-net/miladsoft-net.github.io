@@ -1,19 +1,15 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Header from '../../components/Header.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const posts = await Astro.glob('../../contents/blog/*.md');
 
-// Create URLs for posts manually since they're outside pages directory
 const processedPosts = posts.map(post => ({
     ...post,
     url: `/blog/${post.file.split('/').pop()?.replace('.md', '')}`
 }));
-import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout>
-    <Header />
     <main class="max-w-4xl mx-auto px-4 py-20">
         <h1 class="text-4xl font-bold mb-8">Blog Posts</h1>
         <div class="space-y-8">
@@ -34,11 +30,3 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </main>
 </BaseLayout>
 
-<script>
-  import Swup from 'swup';
-  import SwupFadeTheme from '@swup/fade-theme';
-  const swup = new Swup({
-    plugins: [new SwupFadeTheme()],
-    containers: ['#swup']
-  });
-</script>

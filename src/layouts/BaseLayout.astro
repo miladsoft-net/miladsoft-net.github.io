@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Header from '../components/Header.astro';
 
 interface Props {
   title?: string;
@@ -12,15 +13,24 @@ const { title = "Astro Basics" } = Astro.props;
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
   <body class="min-h-screen swup-transition-main">
-    <div id="swup" class="transition-slide">
+    <Header />
+    <main id="swup" class="transition-slide container mx-auto px-4">
       <slot />
-    </div>
+    </main>
+    <script type="module">
+      import Swup from 'swup';
+      import SwupFadeTheme from '@swup/fade-theme';
+      const swup = new Swup({
+        plugins: [new SwupFadeTheme()],
+        containers: ['#swup']
+      });
+    </script>
   </body>
 </html>
 
@@ -30,6 +40,7 @@ const { title = "Astro Basics" } = Astro.props;
     margin: 0;
     width: 100%;
     height: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
   }
 
   .transition-slide {
@@ -43,5 +54,17 @@ const { title = "Astro Basics" } = Astro.props;
 
   .swup-transition-main.is-animating {
     transform: translateX(-100%);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 0 0.5rem;
+    }
   }
 </style>
