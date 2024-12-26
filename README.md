@@ -1,84 +1,48 @@
-# ✨ Welcome to the Angor Blog
+# Astro Starter Kit: Basics
 
-## 🚀 Getting Started
-
-### 1. Clone the Repository
-To begin, clone the repository and navigate into the project directory:
-```bash
-git clone https://github.com/your-repo/angor-blog.git
-cd angor-blog
+```sh
+npm create astro@latest -- --template basics
 ```
 
-### 2. Install Dependencies
-Next, install the necessary dependencies:
-```bash
-pnpm install
-pnpm add sharp
-```
-If `pnpm` is not already installed, you can install it globally using:
-```bash
-npm install -g pnpm
-```
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
+[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
 
-## 🧞 Available Commands
+> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
 
-All commands should be executed from the root directory of the project using a terminal:
+![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
 
-| Command                             | Description                                       |
-|:------------------------------------|:--------------------------------------------------|
-| `pnpm install` AND `pnpm add sharp` | Install project dependencies                      |
-| `pnpm dev`                          | Start the local development server at `localhost:4321` |
-| `pnpm build`                        | Build the production site into the `./dist/` directory |
-| `pnpm preview`                      | Preview the built site locally before deploying   |
-| `pnpm new-post <foldername>`        | Create a new blog post                            |
-| `pnpm astro ...`                    | Execute Astro CLI commands like `astro add`, `astro check` |
-| `pnpm astro --help`                 | Display help information for the Astro CLI        |
+## 🚀 Project Structure
 
-## ✍️ Creating a New Post
+Inside of your Astro project, you'll see the following folders and files:
 
-Follow these steps to create a new post using the provided script:
-
-### 1. Open Terminal or Command Prompt
-Navigate to the root directory of the project.
-
-### 2. Run the Script
-Execute the following command, replacing `<foldername>` with the desired name for your post folder:
-```bash
-pnpm new-post <foldername>
-```
-For example, to name your post folder "what-is-angor", use:
-```bash
-pnpm new-post what-is-angor
-```
-This command will:
-- Format the folder name to lowercase with hyphens.
-- Create a directory with this name in `src/content/posts/`.
-- Generate an `index.md` file within that directory containing initial post metadata.
-
-### 3. Edit the `index.md` File
-Open the newly created `index.md` file and start writing your post. Customize the frontmatter and add your content as needed.
-
-## ⚙️ Frontmatter of Posts
-
-Each post file (`index.md`) should start with frontmatter in YAML format. Here is an example:
-
-```yaml
----
-title: My First Blog Post
-published: 2024-05-08
-description: This is the first post.
-image: /images/cover.jpg
-tags: [Bitcoin, Investment, Angor]
-category: Cryptocurrency
-draft: false
----
+```text
+/
+├── public/
+│   └── favicon.svg
+├── src/
+│   ├── layouts/
+│   │   └── Layout.astro
+│   └── pages/
+│       └── index.astro
+└── package.json
 ```
 
-### Frontmatter Fields Explained
-- `title`: The title of your blog post.
-- `published`: The date when the post is published.
-- `description`: A brief description of the post.
-- `image`: Path to the cover image of the post.
-- `tags`: An array of tags relevant to the post.
-- `category`: The category under which the post falls.
-- `draft`: Set to `false` when the post is ready to be published.
+To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+
+## 🧞 Commands
+
+All commands are run from the root of the project, from a terminal:
+
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
+
+## 👀 Want to learn more?
+
+Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
