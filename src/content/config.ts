@@ -11,6 +11,9 @@ const postsCollection = defineCollection({
     tags: z.array(z.string()).optional().default([]),
     category: z.string().optional().default(''),
     lang: z.string().optional().default(''),
+    isFree: z.boolean().default(true),
+    price: z.number().optional(),
+    salePrice: z.number().optional(),
 
     /* For internal use */
     prevTitle: z.string().default(''),
@@ -19,6 +22,7 @@ const postsCollection = defineCollection({
     nextSlug: z.string().default(''),
   }),
 })
+
 export const collections = {
   posts: postsCollection,
 }
