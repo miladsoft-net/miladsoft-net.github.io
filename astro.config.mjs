@@ -1,57 +1,132 @@
-import { defineConfig } from 'astro/config'
-import mdx from '@astrojs/mdx'
-import tailwind from '@astrojs/tailwind'
-import react from '@astrojs/react'
-import sitemap from '@astrojs/sitemap'
-import partytown from '@astrojs/partytown'
-import { SITE } from './src/config.ts'
-import { remarkReadingTime } from './src/support/plugins.ts'
-import { uploadAssetsToS3 } from './src/support/uploader.ts'
+import sitemap from "@astrojs/sitemap";
+import svelte from "@astrojs/svelte";
+import tailwind from "@astrojs/tailwind";
+import swup from "@swup/astro";
+import Compress from "astro-compress";
+import icon from "astro-icon";
+import { defineConfig } from "astro/config";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeComponents from "rehype-components"; /* Render the custom directive content */
+import rehypeKatex from "rehype-katex";
+import rehypeSlug from "rehype-slug";
+import remarkDirective from "remark-directive"; /* Handle directives */
+import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
+import remarkMath from "remark-math";
+import remarkSectionize from "remark-sectionize";
+import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
+import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
+import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
+import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
+import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 
+// https://astro.build/config
 export default defineConfig({
-    site: SITE.url,
-    image: {
-        // If you don't want to optimize images during the BUILD process,
-        // you can open this comment. It will significantly reduce the build time but won't optimize any images anymore.
-        // service: passthroughImageService(),
-    },
-    integrations: [
-        partytown(),
-        mdx(),
-        sitemap(),
-        tailwind(),
-        react(),
-        (await import('@playform/compress')).default({
-            CSS: true,
-            HTML: true,
-            Image: false,
-            JavaScript: true,
-            SVG: true,
-            Logger: 2,
-        }),
-        uploadAssetsToS3(),
+  site: "https://miladsoft.net/",
+  base: "/",
+  trailingSlash: "always",
+  integrations: [
+    tailwind(
+        {
+          nesting: true,
+        }
+    ),
+    swup({
+      theme: false,
+      animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
+      // the default value `transition-` cause transition delay
+      // when the Tailwind class `transition-all` is used
+      containers: ["main", "#toc"],
+      smoothScrolling: true,
+      cache: true,
+      preload: true,
+      accessibility: true,
+      updateHead: true,
+      updateBodyClass: false,
+      globalInstance: true,
+    }),
+    icon({
+      include: {
+        "preprocess: vitePreprocess(),": ["*"],
+        "fa6-brands": ["*"],
+        "fa6-regular": ["*"],
+        "fa6-solid": ["*"],
+      },
+    }),
+    svelte(),
+    sitemap(),
+    Compress({
+      CSS: false,
+      Image: false,
+      Action: {
+        Passed: async () => true, // https://github.com/PlayForm/Compress/issues/376
+      },
+    }),
+  ],
+  markdown: {
+    remarkPlugins: [
+      remarkMath,
+      remarkReadingTime,
+      remarkExcerpt,
+      remarkGithubAdmonitionsToDirectives,
+      remarkDirective,
+      remarkSectionize,
+      parseDirectiveNode,
     ],
-    markdown: {
-        remarkPlugins: [remarkReadingTime],
-        shikiConfig: {
-            theme: 'github-light',
-            themes: {
-                light: 'github-light',
-                dark: 'github-dark',
-            },
-            wrap: false,
+    rehypePlugins: [
+      rehypeKatex,
+      rehypeSlug,
+      [
+        rehypeComponents,
+        {
+          components: {
+            github: GithubCardComponent,
+            note: (x, y) => AdmonitionComponent(x, y, "note"),
+            tip: (x, y) => AdmonitionComponent(x, y, "tip"),
+            important: (x, y) => AdmonitionComponent(x, y, "important"),
+            caution: (x, y) => AdmonitionComponent(x, y, "caution"),
+            warning: (x, y) => AdmonitionComponent(x, y, "warning"),
+          },
         },
-    },
-    devToolbar: {
-        enabled: false,
-    },
-    prefetch: true,
-    output: 'static',
+      ],
+      [
+        rehypeAutolinkHeadings,
+        {
+          behavior: "append",
+          properties: {
+            className: ["anchor"],
+          },
+          content: {
+            type: "element",
+            tagName: "span",
+            properties: {
+              className: ["anchor-icon"],
+              "data-pagefind-ignore": true,
+            },
+            children: [
+              {
+                type: "text",
+                value: "#",
+              },
+            ],
+          },
+        },
+      ],
+    ],
+  },
+  vite: {
     build: {
-        // Specifies the directory in the build output where Astro-generated assets (bundled JS and CSS for example) should live.
-        // see https://docs.astro.build/en/reference/configuration-reference/#buildassets
-        assets: 'assets',
-        // see https://docs.astro.build/en/reference/configuration-reference/#buildassetsprefix
-        assetsPrefix: process.env.S3_ENABLE ? 'https://images.miladsoft.net/gblog' : '',
+      rollupOptions: {
+        onwarn(warning, warn) {
+          // temporarily suppress this warning
+          if (
+            warning.message.includes("is dynamically imported by") &&
+            warning.message.includes("but also statically imported by")
+          ) {
+            return;
+          }
+          warn(warning);
+        },
+      },
     },
-})
+  },
+});
