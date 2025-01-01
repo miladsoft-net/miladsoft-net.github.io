@@ -1,12 +1,12 @@
 <script lang="ts">
   import { cart } from '../store/cartStore';
-  import IconWrapper from './IconWrapper.svelte';
+  import Icon from '@iconify/svelte'
   
   $: itemCount = $cart.length;
 </script>
 
 <a href="/cart/" class="cart-icon">
-  <IconWrapper name="material-symbols:shopping-cart" class="w-6 h-6" />
+  <Icon icon="material-symbols:shopping-cart" class="w-6 h-6" />
   {#if itemCount > 0}
     <span class="cart-badge">{itemCount}</span>
   {/if}

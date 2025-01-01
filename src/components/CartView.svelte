@@ -1,14 +1,15 @@
 <script lang="ts">
   import { cart } from '../store/cartStore';
-  import IconWrapper from './IconWrapper.svelte';
-  
+  import Icon from '@iconify/svelte'
+
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
 </script>
 
 <div class="cart-container">
   {#if $cart.length === 0}
     <div class="empty-cart">
-      <IconWrapper name="material-symbols:shopping-cart-outline" class="w-16 h-16 text-gray-400" />
+      <Icon icon="material-symbols:shopping-cart-outline" class="w-16 h-16 text-gray-400" />
+ 
       <p class="mt-4 text-gray-500">Your cart is empty</p>
     </div>
   {:else}
@@ -27,7 +28,7 @@
             </div>
           </div>
           <button class="remove" on:click={() => cart.removeItem(item.slug)}>
-            <IconWrapper name="material-symbols:delete-outline" />
+            <Icon icon="material-symbols:delete-outline" />
           </button>
         </div>
       {/each}
