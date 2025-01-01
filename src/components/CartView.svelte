@@ -1,15 +1,15 @@
 <script lang="ts">
   import { cart } from '../store/cartStore';
-  import { Icon } from 'astro-icon/components';
+  import IconWrapper from './IconWrapper.svelte';
   
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
 </script>
 
 <div class="cart-container">
   {#if $cart.length === 0}
-    <div class="empty-state">
-      <Icon name="material-symbols:shopping-cart-outline" class="w-16 h-16" />
-      <p class="mt-4">Your cart is empty</p>
+    <div class="empty-cart">
+      <IconWrapper name="material-symbols:shopping-cart-outline" class="w-16 h-16 text-gray-400" />
+      <p class="mt-4 text-gray-500">Your cart is empty</p>
     </div>
   {:else}
     <div class="cart-items">
@@ -27,7 +27,7 @@
             </div>
           </div>
           <button class="remove" on:click={() => cart.removeItem(item.slug)}>
-            <Icon name="material-symbols:delete-outline" />
+            <IconWrapper name="material-symbols:delete-outline" />
           </button>
         </div>
       {/each}
@@ -49,13 +49,12 @@
     min-height: 300px;
   }
 
-  .empty-state {
+  .empty-cart {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 300px;
-    color: var(--text-muted);
   }
 
   .cart-items {
