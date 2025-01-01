@@ -18,6 +18,10 @@ jobs:
       - uses: actions/checkout@v4
         name: Checkout
 
+      - name: Disable Jekyll
+        run: |
+          touch .nojekyll
+
       - name: Use Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -57,4 +61,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           cname: miladsoft.net
+          enable_jekyll: false
 
