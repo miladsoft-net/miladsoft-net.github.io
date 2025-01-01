@@ -43,6 +43,11 @@ export const navBarConfig: NavBarConfig = {
     LinkPreset.Archive,
     LinkPreset.About,
     {
+      name: 'Cart',
+      url: '/cart/',  // Note the trailing slash to match Astro's configuration
+      icon: 'material-symbols:shopping-cart',
+    },
+    {
       name: 'GitHub',
       url: 'https://github.com/miladsoft-net',     // Internal links should not include the base path, as it is automatically added
       external: true,                               // Show an external link icon and will open in a new tab

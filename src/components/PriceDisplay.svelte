@@ -11,10 +11,10 @@
   {:else}
     <div class="price-container">
       {#if salePrice}
-        <span class="original-price">${price}</span>
-        <span class="sale-price">${salePrice}</span>
+        <span class="original-price text-black/30 dark:text-white/30">${price}</span>
+        <span class="sale-price text-black/50 dark:text-white/50">${salePrice}</span>
       {:else}
-        <span class="regular-price">${price}</span>
+        <span class="regular-price text-black/50 dark:text-white/50">${price}</span>
       {/if}
     </div>
   {/if}
@@ -42,7 +42,6 @@
 
   .original-price {
     text-decoration: line-through;
-    color: var(--text-muted);
   }
 
   .sale-price {
