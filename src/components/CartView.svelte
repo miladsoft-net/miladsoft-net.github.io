@@ -1,41 +1,40 @@
 <script lang="ts">
   import { cart } from '../store/cartStore';
-  import Icon from '@iconify/svelte'
-
+  import Icon from '@iconify/svelte';
+  
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
 </script>
 
 <div class="cart-container">
   {#if $cart.length === 0}
     <div class="empty-cart">
-      <Icon icon="material-symbols:shopping-cart-outline" class="w-16 h-16 text-gray-400" />
- 
-      <p class="mt-4 text-gray-500">Your cart is empty</p>
+      <Icon icon="material-symbols:shopping-cart-outline" class="text-black/30 dark:text-white/30 w-16 h-16" />
+      <p class="mt-4 text-black/50 dark:text-white/50">Your cart is empty</p>
     </div>
   {:else}
     <div class="cart-items">
       {#each $cart as item}
         <div class="cart-item">
           <div class="item-info">
-            <h3>{item.title}</h3>
+            <h3 class="text-black/90 dark:text-white/90">{item.title}</h3>
             <div class="price">
               {#if item.salePrice}
-                <span class="original">${item.price}</span>
-                <span class="sale">${item.salePrice}</span>
+                <span class="text-black/30 dark:text-white/30 line-through">${item.price}</span>
+                <span class="text-[var(--primary)]">${item.salePrice}</span>
               {:else}
-                <span>${item.price}</span>
+                <span class="text-black/70 dark:text-white/70">${item.price}</span>
               {/if}
             </div>
           </div>
           <button class="remove" on:click={() => cart.removeItem(item.slug)}>
-            <Icon icon="material-symbols:delete-outline" />
+            <Icon icon="material-symbols:delete-outline" class="text-black/30 dark:text-white/30 w-8 h-8"/>
           </button>
         </div>
       {/each}
       
       <div class="total">
-        <span>Total:</span>
-        <span>${total.toFixed(2)}</span>
+        <span class="text-black/90 dark:text-white/90">Total:</span>
+        <span class="text-[var(--primary)]">${total.toFixed(2)}</span>
       </div>
       
       <button class="checkout">
@@ -80,15 +79,7 @@
   .price {
     display: flex;
     gap: 0.5rem;
-  }
-
-  .price .original {
-    text-decoration: line-through;
-    color: var(--text-muted);
-  }
-
-  .price .sale {
-    color: var(--primary);
+    align-items: center;
   }
 
   .remove {
@@ -109,7 +100,7 @@
     align-items: center;
     padding: 1rem;
     margin-top: 1rem;
-    font-weight: bold;
+    font-weight: 600;
     border-top: 2px solid var(--border-color);
   }
 
@@ -121,10 +112,11 @@
     color: white;
     border-radius: 0.5rem;
     font-weight: 600;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
   }
 
   .checkout:hover {
     opacity: 0.9;
+    transform: translateY(-1px);
   }
 </style>
