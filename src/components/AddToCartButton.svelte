@@ -5,34 +5,42 @@
   export let item: CartItem
   
   $: isInCart = $cart.some(i => i.slug === item.slug)
+
+  function handleClick() {
+    if (isInCart) {
+      window.location.href = '/cart/'
+    } else {
+      cart.addItem(item)
+    }
+  }
 </script>
 
 <button
   class="cart-button"
   class:in-cart={isInCart}
-  on:click={() => !isInCart && cart.addItem(item)}
-  disabled={isInCart}
+  on:click={handleClick}
 >
-  {isInCart ? 'In Cart' : 'Add to Cart'}
+  {isInCart ? 'Go to Cart' : 'Add to Cart'}
 </button>
 
 <style>
   .cart-button {
-    padding: 0.75rem 2rem;
+    width: 100%;
+    padding: 1rem 2rem;
     border-radius: 0.5rem;
     font-weight: 600;
     transition: all 0.2s;
     background-color: var(--primary);
     color: white;
+    text-align: center;
   }
 
-  .cart-button:not(:disabled):hover {
+  .cart-button:hover {
     opacity: 0.9;
     transform: translateY(-1px);
   }
 
   .cart-button.in-cart {
-    background-color: var(--text-muted);
-    cursor: default;
+    background-color: var(--text-normal);
   }
 </style>
