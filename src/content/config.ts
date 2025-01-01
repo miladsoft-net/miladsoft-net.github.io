@@ -14,6 +14,14 @@ const postsCollection = defineCollection({
     isFree: z.boolean().default(true),
     price: z.number().optional(),
     salePrice: z.number().optional(),
+    repoUrl: z.string().url().optional().superRefine((val, ctx) => {
+      if (!ctx.data?.isFree && !val) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Repository URL is required for paid content"
+        });
+      }
+    }),
 
     /* For internal use */
     prevTitle: z.string().default(''),

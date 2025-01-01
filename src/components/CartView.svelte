@@ -2,7 +2,9 @@
   import { cart } from '../store/cartStore';
   import Icon from '@iconify/svelte';
   
+  let githubId = '';
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
+  $: isValidGithubId = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(githubId);
 </script>
 
 <div class="cart-container">
@@ -36,9 +38,47 @@
         <span class="text-black/90 dark:text-white/90">Total:</span>
         <span class="text-[var(--primary)]">${total.toFixed(2)}</span>
       </div>
+
+      <div class="github-id-input">
+        <div class="mb-4 bg-black/[0.02] dark:bg-white/[0.02] p-4 rounded-lg">
+          <p class="text-black/90 dark:text-white/90 font-medium mb-2">
+            <Icon icon="octicon:info-16" class="inline-block mr-2" />
+            GitHub Access Required
+          </p>
+          <p class="text-black/60 dark:text-white/60 text-sm leading-relaxed">
+            Please provide your GitHub username to get access to the private repositories after purchase completion.
+          </p>
+        </div>
+        
+        <div class="flex relative transition-all items-center h-11 rounded-lg
+          bg-black/[0.04] hover:bg-black/[0.06] focus-within:bg-black/[0.06]
+          dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10">
+          <Icon icon="mdi:github" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"/>
+          <input 
+            type="text" 
+            id="github-id" 
+            bind:value={githubId}
+            placeholder="Enter your GitHub username"
+            class="transition-all pl-10 text-sm bg-transparent outline-0 h-full w-full 
+              text-black/70 dark:text-white/70 placeholder:text-black/40 dark:placeholder:text-white/40"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        {#if githubId && !isValidGithubId}
+          <p class="mt-2 text-red-500 dark:text-red-400 text-sm flex items-center">
+            <Icon icon="octicon:alert-16" class="mr-1" />
+            Please enter a valid GitHub username
+          </p>
+        {/if}
+      </div>
       
-      <button class="checkout">
-        Proceed to Checkout
+      <button class="checkout" disabled={!isValidGithubId || $cart.length === 0}>
+        {#if !isValidGithubId}
+          Enter GitHub Username
+        {:else}
+          Proceed to Checkout
+        {/if}
       </button>
     </div>
   {/if}
@@ -118,5 +158,12 @@
   .checkout:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+  }
+
+  .checkout:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    background: var(--text-muted);
   }
 </style>

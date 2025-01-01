@@ -5,6 +5,9 @@ description: A simple example of a Markdown blog post.
 tags: [Markdown, Blogging, Demo]
 category: Examples
 draft: false
+isFree: false
+price: 29.99
+repoUrl: "https://github.com/miladsoft-net/guide-repository"
 ---
 
 # An h1 header

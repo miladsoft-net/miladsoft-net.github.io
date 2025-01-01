@@ -6,7 +6,10 @@ description: 'Read more about Markdown features in Miladsoft'
 image: ''
 tags: [Demo, Example, Markdown, Miladsoft]
 category: 'Examples'
-draft: false 
+draft: false
+isFree: false
+price: 29.99
+repoUrl: "https://github.com/miladsoft-net/guide-repository"
 ---
 
 ## GitHub Repository Cards

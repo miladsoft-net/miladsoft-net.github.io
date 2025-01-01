@@ -8,6 +8,7 @@ draft: false
 isFree: false
 price: 29.99
 salePrice: 19.99  # Optional - remove if no discount
+repoUrl: https://github.com/yourusername/private-repo-name
 ---
 
 Just copy the embed code from YouTube or other platforms, and paste it in the markdown file.
