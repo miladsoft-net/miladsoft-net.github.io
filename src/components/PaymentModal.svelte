@@ -54,6 +54,7 @@
     }
   }
 
+  // Update the status messages to include emojis for better visibility
   async function generateInvoice() {
     isGeneratingInvoice = true;
     paymentResult = '';
@@ -66,7 +67,7 @@
       startPaymentCheck();
     } catch (error) {
       console.error('Error generating invoice:', error);
-      paymentResult = 'Error generating invoice. Please try again.';
+      paymentResult = '❌ Error generating invoice. Please try again.';
     } finally {
       isGeneratingInvoice = false;
     }
@@ -82,15 +83,15 @@
         
         if (data.status === 'OK') {
           if (data.settled) {
-            paymentResult = 'Payment successful! ✅';
+            paymentResult = '✅ Payment successful!';
             clearInterval(checkInterval);
           } else {
-            paymentResult = 'Waiting for payment...';
+            paymentResult = '⏳ Waiting for payment...';
           }
         }
       } catch (error) {
         console.error('Error checking payment:', error);
-        paymentResult = 'Error checking payment status';
+        paymentResult = '❌ Error checking payment status';
       }
     }, 2000); // Check every 2 seconds
 
@@ -102,12 +103,12 @@
 
   async function checkPaymentStatus() {
     if (!verifyUrl) {
-      paymentResult = 'No active invoice to check';
+      paymentResult = '⚠️ No active invoice to check';
       return;
     }
 
     isChecking = true;
-    paymentResult = 'Checking payment status...';
+    paymentResult = '🔄 Checking payment status...';
 
     try {
       const response = await fetch(verifyUrl);
@@ -115,14 +116,14 @@
       
       if (data.status === 'OK') {
         if (data.settled) {
-          paymentResult = 'Payment successful! ✅';
+          paymentResult = '✅ Payment successful!';
         } else {
-          paymentResult = 'Payment pending. Please complete the payment.';
+          paymentResult = '⏳ Payment pending. Please complete the payment.';
         }
       }
     } catch (error) {
       console.error('Error checking payment status:', error);
-      paymentResult = 'Could not verify payment status. Please try again.';
+      paymentResult = '❌ Could not verify payment status. Please try again.';
     } finally {
       isChecking = false;
     }
@@ -199,8 +200,8 @@
 
             {#if isGeneratingInvoice}
               <div class="flex flex-col items-center justify-center p-8 space-y-4">
-                <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-gray-600 dark:text-gray-400">Generating invoice...</p>
+                <div class="w-12 h-12 border-4 border-blue-500 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-gray-700 dark:text-gray-300 font-medium">Generating invoice...</p>
               </div>
             {:else if invoice}
               <div class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-600 rounded-lg animate-fade-in">
@@ -235,7 +236,11 @@
                   {/if}
                 </button>
                 {#if paymentResult}
-                  <p class="mt-2 text-sm" class:text-green-500={paymentResult.includes('successful')} class:text-red-500={paymentResult.includes('Error')}>
+                  <p class="mt-2 text-sm font-medium" class:text-green-500={paymentResult.includes('✅')} 
+                     class:text-red-500={paymentResult.includes('❌')}
+                     class:text-yellow-500={paymentResult.includes('⚠️')}
+                     class:text-blue-500={paymentResult.includes('⏳') || paymentResult.includes('🔄')}
+                  >
                     {paymentResult}
                   </p>
                 {/if}
@@ -261,6 +266,22 @@
 
   .selected .text-gray-600 {
     @apply text-white;
+  }
+
+  :global(.dark) .text-green-500 {
+    color: rgb(34, 197, 94);
+  }
+
+  :global(.dark) .text-red-500 {
+    color: rgb(239, 68, 68);
+  }
+
+  :global(.dark) .text-yellow-500 {
+    color: rgb(234, 179, 8);
+  }
+
+  :global(.dark) .text-blue-500 {
+    color: rgb(59, 130, 246);
   }
 </style>
 
