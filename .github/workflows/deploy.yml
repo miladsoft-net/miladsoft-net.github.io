@@ -10,15 +10,14 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - uses: actions/checkout@v4
-        name: Checkout
-
-      - name: Disable Jekyll
-        run: |
-          touch .nojekyll
-
+        with:
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -29,7 +28,7 @@ jobs:
         with:
           version: latest
           run_install: false
- 
+
       - name: Install Dependencies
         run: pnpm install
 
@@ -38,13 +37,17 @@ jobs:
           VITE_GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: pnpm run build
 
-      - name: Redirect 404 to Index for SPA
-        run: cp dist/index.html dist/404.html
+      - name: Setup Git Config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          force_orphan: true      # Create fresh gh-pages branch
+          enable_jekyll: false
           cname: miladsoft.net
- 
+          commit_message: "Deploy: ${{ github.sha }}"
