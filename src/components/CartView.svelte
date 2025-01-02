@@ -87,9 +87,10 @@
       
       <button class="checkout" disabled={!isValidGithubId || $cart.length === 0}>
         {#if !isValidGithubId}
-          Enter GitHub Username
+         <span class="text-black/70 dark:text-white/70"> Enter GitHub Username</span>
         {:else}
-          Proceed to Checkout
+         
+          <span class="text-black/70 dark:text-white/70">  Proceed to Checkout</span>
         {/if}
       </button>
     </div>

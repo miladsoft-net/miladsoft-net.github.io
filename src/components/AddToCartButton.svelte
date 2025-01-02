@@ -27,7 +27,7 @@
   class:in-cart={isInCart}
   on:click={handleClick}
 >
-  {isInCart ? 'Go to Cart' : 'Add to Cart'}
+  <span class="text-black/70 dark:text-white/70">{isInCart ? 'Go to Cart' : 'Add to Cart'}</span> 
 </button>
 
 <style>

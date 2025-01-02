@@ -44,8 +44,7 @@ export const navBarConfig: NavBarConfig = {
     LinkPreset.About,
     {
       name: 'Cart',
-      url: '/cart/',  // Note the trailing slash to match Astro's configuration
-      icon: 'material-symbols:shopping-cart',
+      url: '/cart/',  
     },
     {
       name: 'GitHub',
