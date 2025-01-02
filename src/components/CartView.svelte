@@ -7,6 +7,7 @@
   let showPaymentModal = false;
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
   $: isValidGithubId = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(githubId);
+  $: repositories = $cart.filter((item): item is typeof item & { repoUrl: string } => !!item.repoUrl).map(item => item.repoUrl);
 
   function handleCheckout() {
     showPaymentModal = true;
@@ -97,10 +98,10 @@
   {/if}
 </div>
 
-<!-- Move PaymentModal outside any containers -->
 <PaymentModal 
   bind:show={showPaymentModal} 
   {total}
   {githubId}
+  {repositories}
   on:close={() => showPaymentModal = false}
 />

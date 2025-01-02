@@ -8,6 +8,7 @@
   export let show = false;
   export let total: number;
   export let githubId: string;
+  export let repositories: string[]; 
 
   let selectedMethod = '';
   let bitcoinPrice = 0;
@@ -101,6 +102,35 @@
     }, 600000);
   }
 
+  async function addGitHubCollaborator() {
+    try {
+      const response = await fetch('https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ref: 'main',
+          inputs: {
+            username: githubId,
+            repositories: repositories.join(',')
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add collaborator');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error adding collaborator:', error);
+      return false;
+    }
+  }
+
   async function checkPaymentStatus() {
     if (!verifyUrl) {
       paymentResult = '⚠️ No active invoice to check';
@@ -114,12 +144,16 @@
       const response = await fetch(verifyUrl);
       const data = await response.json();
       
-      if (data.status === 'OK') {
-        if (data.settled) {
-          paymentResult = '✅ Payment successful!';
+      if (data.status === 'OK' && data.settled) {
+        paymentResult = '✅ Payment successful!';
+        const collaboratorAdded = await addGitHubCollaborator();
+        if (collaboratorAdded) {
+          paymentResult += ' Repository access granted!';
         } else {
-          paymentResult = '⏳ Payment pending. Please complete the payment.';
+          paymentResult += ' Error granting repository access.';
         }
+      } else if (data.status === 'OK') {
+        paymentResult = '⏳ Payment pending. Please complete the payment.';
       }
     } catch (error) {
       console.error('Error checking payment status:', error);
@@ -186,6 +220,15 @@
 
         {#if selectedMethod}
           <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-4">
+            <!-- Add repository list display -->
+            <div class="mb-4">
+              <p class="text-sm text-gray-600 dark:text-gray-400">Repositories</p>
+              <ul class="list-disc pl-5 mt-2">
+                {#each repositories as repo}
+                  <li class="text-gray-900 dark:text-gray-100">{repo}</li>
+                {/each}
+              </ul>
+            </div>
             <div class="flex justify-between items-center">
               <div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>

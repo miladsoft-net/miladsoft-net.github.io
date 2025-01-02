@@ -15,7 +15,8 @@
         title: item.title,
         price: item.price,
         salePrice: item.salePrice,
-        repoUrl: item.repoUrl
+        repoUrl: item.repoUrl,
+        repositories: item.repositories || [] 
       }
       cart.addItem(cartItem)
     }
