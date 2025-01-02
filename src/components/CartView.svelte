@@ -1,10 +1,16 @@
 <script lang="ts">
   import { cart } from '../store/cartStore';
   import Icon from '@iconify/svelte';
+  import PaymentModal from './PaymentModal.svelte';
   
   let githubId = '';
+  let showPaymentModal = false;
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
   $: isValidGithubId = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(githubId);
+
+  function handleCheckout() {
+    showPaymentModal = true;
+  }
 </script>
 
 <div class="cart-container">
@@ -85,7 +91,7 @@
         {/if}
       </div>
       
-      <button class="checkout" disabled={!isValidGithubId || $cart.length === 0}>
+      <button class="checkout" disabled={!isValidGithubId || $cart.length === 0} on:click={handleCheckout}>
         {#if !isValidGithubId}
          <span class="text-black/70 dark:text-white/70"> Enter GitHub Username</span>
         {:else}
@@ -96,6 +102,13 @@
     </div>
   {/if}
 </div>
+
+<PaymentModal 
+  bind:show={showPaymentModal} 
+  {total}
+  {githubId}
+  on:close={() => showPaymentModal = false}
+/>
 
 <style>
   .cart-container {
