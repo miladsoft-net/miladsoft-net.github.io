@@ -12,6 +12,7 @@
   let selectedMethod = '';
   let bitcoinPrice = 0;
   let satoshis = 0;
+  let invoice = '';
   
   const paymentMethods = [
     {
@@ -49,6 +50,16 @@
     }
   }
 
+  async function generateInvoice() {
+    try {
+      const response = await fetch(`https://getalby.com/lnurlp/milad/callback?amount=${satoshis * 1000}`);
+      const data = await response.json();
+      invoice = data.pr;
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+    }
+  }
+
   function handleClose() {
     show = false;
     dispatch('close');
@@ -56,6 +67,7 @@
 
   function handlePaymentSelect(methodId: string) {
     selectedMethod = methodId;
+    generateInvoice();
   }
 
   function copyAddress(address: string) {
@@ -116,10 +128,10 @@
             </div>
 
             <div class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-600 rounded-lg">
-              <code class="text-sm break-all text-gray-900 dark:text-gray-100">{paymentMethods.find(m => m.id === selectedMethod)?.address}</code>
+              <code class="text-sm break-all text-gray-900 dark:text-gray-100">{invoice}</code>
               <button 
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" 
-                on:click={() => copyAddress(paymentMethods.find(m => m.id === selectedMethod)?.address || '')}
+                on:click={() => copyAddress(invoice)}
               >
                 <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
               </button>
@@ -129,6 +141,7 @@
               <div class="text-gray-400 text-center">
                 <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mx-auto mb-2" />
                 <p>Scan QR Code to Pay</p>
+                <img src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=150x150`} alt="QR Code" />
               </div>
             </div>
           </div>
