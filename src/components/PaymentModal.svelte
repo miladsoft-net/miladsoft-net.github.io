@@ -16,6 +16,7 @@
   let paymentResult = '';
   let isChecking = false;
   let verifyUrl = '';
+  let isGeneratingInvoice = false;
 
   const paymentMethods = [
     {
@@ -54,6 +55,9 @@
   }
 
   async function generateInvoice() {
+    isGeneratingInvoice = true;
+    paymentResult = '';
+    
     try {
       const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis*1000}`);
       const data = await response.json();
@@ -63,6 +67,8 @@
     } catch (error) {
       console.error('Error generating invoice:', error);
       paymentResult = 'Error generating invoice. Please try again.';
+    } finally {
+      isGeneratingInvoice = false;
     }
   }
 
@@ -191,43 +197,50 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-600 rounded-lg">
-              <code class="text-sm break-all text-gray-900 dark:text-gray-100">{invoice}</code>
-              <button 
-                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" 
-                on:click={() => copyAddress(invoice)}
-              >
-                <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
-              </button>
-            </div>
-
-            <div class="bg-white dark:bg-[var(--card-bg)] p-4 rounded-lg flex items-center justify-center">
-              <div class="text-gray-400 text-center">
-                <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mx-auto mb-2" />
-                <p>Scan QR Code to Pay</p>
-                <img src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=150x150`} alt="QR Code" />
+            {#if isGeneratingInvoice}
+              <div class="flex flex-col items-center justify-center p-8 space-y-4">
+                <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-gray-600 dark:text-gray-400">Generating invoice...</p>
               </div>
-            </div>
+            {:else if invoice}
+              <div class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-600 rounded-lg animate-fade-in">
+                <code class="text-sm break-all text-gray-900 dark:text-gray-100">{invoice}</code>
+                <button 
+                  class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" 
+                  on:click={() => copyAddress(invoice)}
+                >
+                  <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
+                </button>
+              </div>
 
-            <div class="text-center mt-4">
-              <button 
-                class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" 
-                on:click={checkPaymentStatus}
-                disabled={isChecking || !invoice}
-              >
-                {#if isChecking}
-                  <Icon icon="material-symbols:sync" class="animate-spin" />
-                  Checking...
-                {:else}
-                  Check Payment Status
+              <div class="bg-white dark:bg-[var(--card-bg)] p-4 rounded-lg flex items-center justify-center animate-fade-in">
+                <div class="text-gray-400 text-center">
+                  <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mx-auto mb-2" />
+                  <p>Scan QR Code to Pay</p>
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=150x150`} alt="QR Code" />
+                </div>
+              </div>
+
+              <div class="text-center mt-4 animate-fade-in">
+                <button 
+                  class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" 
+                  on:click={checkPaymentStatus}
+                  disabled={isChecking || !invoice}
+                >
+                  {#if isChecking}
+                    <Icon icon="material-symbols:sync" class="animate-spin" />
+                    Checking...
+                  {:else}
+                    Check Payment Status
+                  {/if}
+                </button>
+                {#if paymentResult}
+                  <p class="mt-2 text-sm" class:text-green-500={paymentResult.includes('successful')} class:text-red-500={paymentResult.includes('Error')}>
+                    {paymentResult}
+                  </p>
                 {/if}
-              </button>
-              {#if paymentResult}
-                <p class="mt-2 text-sm" class:text-green-500={paymentResult.includes('successful')} class:text-red-500={paymentResult.includes('Error')}>
-                  {paymentResult}
-                </p>
-              {/if}
-            </div>
+              </div>
+            {/if}
           </div>
         {/if}
       </div>
