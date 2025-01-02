@@ -21,7 +21,7 @@
       description: 'Pay with Bitcoin',
       icon: 'cryptocurrency:btc',
       address: 'BITCOIN_WALLET_ADDRESS',
-      network: 'Bitcoin Network'
+      network: 'Bitcoin Lightning Network'
     }
   ];
 
