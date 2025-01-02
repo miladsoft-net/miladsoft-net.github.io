@@ -23,7 +23,7 @@
 </script>
 
 <button
-  class="cart-button"
+  class="w-full py-4 px-8 rounded-lg font-semibold transition-all bg-[var(--primary)] text-white text-center hover:opacity-90 hover:-translate-y-1"
   class:in-cart={isInCart}
   on:click={handleClick}
 >
@@ -31,23 +31,7 @@
 </button>
 
 <style>
-  .cart-button {
-    width: 100%;
-    padding: 1rem 2rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    transition: all 0.2s;
-    background-color: var(--primary);
-    color: white;
-    text-align: center;
-  }
-
-  .cart-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
-
-  .cart-button.in-cart {
-    background-color: var(--text-normal);
+  .in-cart {
+    @apply bg-black/[0.2] ;
   }
 </style>
