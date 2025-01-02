@@ -57,7 +57,7 @@
         <span class="text-blue-500">${total.toFixed(2)}</span>
       </div>
 
-      <div class="mb-4 p-4 bg-black/[0.04] dark:bg-white/5 rounded-lg">
+      <div class="mb-4 p-4 bg-[var(--page-bg)] rounded-lg">
         <p class="text-black dark:text-white font-medium mb-2 flex items-center">
           <Icon icon="octicon:info-16" class="mr-2" />
           GitHub Access Required
