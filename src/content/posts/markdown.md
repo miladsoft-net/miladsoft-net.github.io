@@ -6,7 +6,8 @@ tags: [Markdown, Blogging, Demo]
 category: Examples
 draft: false
 isFree: false
-price: 29.99
+price: 5
+salePrice: 3.99
 repoUrl: "https://github.com/miladsoft-net/guide-repository"
 ---
 

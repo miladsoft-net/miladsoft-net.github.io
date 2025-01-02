@@ -40,6 +40,8 @@ const hasCover = image !== undefined && image !== null && image !== ''
 const coverWidth = '28%'
 
 const { remarkPluginFrontmatter } = await entry.render()
+const price = entry.data.price ? `$${entry.data.price.toFixed(2)}` : 'Free'
+const salePrice = entry.data.salePrice ? `$${entry.data.salePrice.toFixed(2)}` : null
 ---
 <div class:list={["card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative", className]} style={style}>
     <div class:list={["pl-6 md:pl-9 pr-6 md:pr-2 pt-6 md:pt-7 pb-6 relative", {"w-full md:w-[calc(100%_-_52px_-_12px)]": !hasCover, "w-full md:w-[calc(100%_-_var(--coverWidth)_-_12px)]": hasCover}]}>
@@ -63,11 +65,20 @@ const { remarkPluginFrontmatter } = await entry.render()
             { description || remarkPluginFrontmatter.excerpt }
         </div>
 
-        <!-- word count and read time  -->
+        <!-- word count, read time, and price -->
         <div class="text-sm text-black/30 dark:text-white/30 flex gap-4 transition">
             <div>{remarkPluginFrontmatter.words} {" " + i18n(I18nKey.wordsCount)}</div>
             <div>|</div>
             <div>{remarkPluginFrontmatter.minutes} {" " + i18n(I18nKey.minutesCount)}</div>
+            <div>|</div>
+            {salePrice ? (
+              <div>
+                <span class="line-through">{price}</span>
+                <span class="text-[var(--primary)] ml-2">{salePrice}</span>
+              </div>
+            ) : (
+              <div>{price}</div>
+            )}
         </div>
 
     </div>
