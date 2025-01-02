@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { portal } from '../utils/portal'; // Updated import
 
   const dispatch = createEventDispatcher();
@@ -10,41 +10,44 @@
   export let githubId: string;
 
   let selectedMethod = '';
+  let bitcoinPrice = 0;
+  let satoshis = 0;
   
   const paymentMethods = [
     {
-      id: 'usdt-ton',
-      name: 'USDT on TON',
-      description: 'Pay with USDT on The Open Network (TON)',
-      icon: 'material-symbols:diamond',
-      address: 'TON_WALLET_ADDRESS',
-      network: 'TON Network'
-    },
-    {
-      id: 'usdt-eth',
-      name: 'USDT on Ethereum',
-      description: 'Pay with USDT on Ethereum Network (ERC-20)',
-      icon: 'cryptocurrency:eth',
-      address: 'ETH_WALLET_ADDRESS',
-      network: 'Ethereum Network'
-    },
-    {
-      id: 'usdt-tron',
-      name: 'USDT on TRON',
-      description: 'Pay with USDT on TRON Network (TRC-20)',
-      icon: 'cryptocurrency:trx',
-      address: 'TRON_WALLET_ADDRESS',
-      network: 'TRON Network'
-    },
-    {
-      id: 'btc-lightning',
-      name: 'Bitcoin Lightning',
-      description: 'Pay with Bitcoin through Lightning Network',
+      id: 'bitcoin',
+      name: 'Bitcoin',
+      description: 'Pay with Bitcoin',
       icon: 'cryptocurrency:btc',
-      address: 'LIGHTNING_INVOICE',
-      network: 'Lightning Network'
+      address: 'BITCOIN_WALLET_ADDRESS',
+      network: 'Bitcoin Network'
     }
   ];
+
+  onMount(async () => {
+    await fetchBitcoinPrice();
+    calculateSatoshis();
+    setInterval(async () => {
+      await fetchBitcoinPrice();
+      calculateSatoshis();
+    }, 60000); // Update every minute
+  });
+
+  async function fetchBitcoinPrice() {
+    try {
+      const response = await fetch('https://mempool.space/api/v1/prices');
+      const data = await response.json();
+      bitcoinPrice = data.USD; // Price in USD
+    } catch (error) {
+      console.error('Error fetching Bitcoin price:', error);
+    }
+  }
+
+  function calculateSatoshis() {
+    if (bitcoinPrice > 0) {
+      satoshis = (total / bitcoinPrice) * 100000000; // 1 BTC = 100,000,000 satoshis
+    }
+  }
 
   function handleClose() {
     show = false;
@@ -104,6 +107,7 @@
               <div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
                 <p class="text-lg font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Satoshis: {satoshis.toFixed(0)}</p>
               </div>
               <div class="text-right">
                 <p class="text-sm text-gray-600 dark:text-gray-400">Network</p>
