@@ -104,72 +104,38 @@
 
   async function addGitHubCollaborator() {
     try {
-      // 1. Trigger workflow
-      const response = await fetch('https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ref: 'main',
-          inputs: {
-            username: githubId,
-            repositories: repositories.join(',')
-          }
-        })
-      });
+      console.log('Starting workflow trigger for:', githubId, repositories);
+      
+       const response = await fetch(
+        'https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches',
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+            'Authorization': `token ${import.meta.env.VITE_GITHUB_TOKEN}`
+          },
+          body: JSON.stringify({
+            ref: 'main',
+            inputs: {
+              username: githubId,
+              repositories: repositories
+                .map(repo => repo.split('/').pop())
+                .filter(Boolean)
+                .join(',')
+            }
+          })
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Failed to trigger workflow: ${response.status}`);
+        throw new Error(`Workflow trigger failed: ${response.status}`);
       }
 
-      // 2. Wait a moment for workflow to start
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // انتظار برای تکمیل workflow
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      return true;
 
-      // 3. Check workflow status
-      const checkWorkflowStatus = async () => {
-        const workflowsResponse = await fetch(
-          'https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/runs?event=workflow_dispatch&status=completed',
-          {
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-              'Accept': 'application/vnd.github.v3+json'
-            }
-          }
-        );
-
-        if (!workflowsResponse.ok) {
-          throw new Error('Failed to check workflow status');
-        }
-
-        const data = await workflowsResponse.json();
-        const latestRun = data.workflow_runs[0];
-
-        if (latestRun.conclusion === 'success') {
-          return true;
-        } else if (latestRun.conclusion === 'failure') {
-          throw new Error('Workflow failed');
-        }
-
-        return null; // still running
-      };
-
-      // 4. Poll for completion
-      let attempts = 0;
-      while (attempts < 10) {
-        const status = await checkWorkflowStatus();
-        if (status === true) {
-          return true;
-        } else if (status === false) {
-          return false;
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        attempts++;
-      }
-
-      throw new Error('Workflow check timed out');
     } catch (error) {
       console.error('Error in addGitHubCollaborator:', error);
       return false;

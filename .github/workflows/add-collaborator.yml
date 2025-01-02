@@ -1,4 +1,4 @@
-name: Add Collaborator to Repos
+name: Add Repository Access
 
 on:
   workflow_dispatch:
@@ -8,37 +8,49 @@ on:
         required: true
         type: string
       repositories:
-        description: 'Comma-separated list of repositories'
+        description: 'Repository names (comma-separated)'
         required: true
         type: string
 
 jobs:
-  add-collaborator:
+  add-access:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     
     steps:
-      - name: Add collaborator to repositories
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Add repository access
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           IFS=',' read -ra REPOS <<< "${{ github.event.inputs.repositories }}"
           for repo in "${REPOS[@]}"; do
             repo=$(echo $repo | xargs)
-            echo "Adding collaborator to $repo"
-            response=$(curl -s -w "\n%{http_code}" -X PUT \
-              -H "Authorization: Bearer $GH_TOKEN" \
+            echo "Processing repository: $repo"
+            
+            # Add collaborator with read access
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X PUT \
+              -H "Authorization: token $GH_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/miladsoft-net/$repo/collaborators/${{ github.event.inputs.username }}" \
               -d '{"permission":"pull"}')
             
-            status_code=$(echo "$response" | tail -n1)
-            body=$(echo "$response" | head -n-1)
-            
-            if [ "$status_code" -eq 201 ] || [ "$status_code" -eq 204 ]; then
-              echo "::set-output name=result::Successfully added collaborator to $repo"
+            if [ "$status_code" = "201" ] || [ "$status_code" = "204" ]; then
+              echo "✓ Successfully added read access to $repo"
             else
-              echo "::set-output name=result::Failed to add collaborator to $repo (Status: $status_code)"
-              echo "Response: $body"
+              echo "✗ Failed to add access to $repo (Status: $status_code)"
               exit 1
             fi
           done
+
+      - name: Send notification
+        if: always()
+        run: |
+          echo "::set-output name=status::${{ job.status }}"
+          echo "::set-output name=username::${{ github.event.inputs.username }}"
+          echo "::set-output name=repositories::${{ github.event.inputs.repositories }}"
