@@ -7,7 +7,7 @@ category: Examples
 draft: false
 isFree: false
 price: 5
-salePrice: 3.99
+salePrice: 0.05
 repoUrl: "https://github.com/miladsoft-net/guide-repository"
 ---
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { portal } from '../utils/portal'; // Updated import
 
   const dispatch = createEventDispatcher();
@@ -13,7 +13,10 @@
   let bitcoinPrice = 0;
   let satoshis = 0;
   let invoice = '';
-  
+  let paymentResult = '';
+  let isChecking = false;
+  let verifyUrl = '';
+
   const paymentMethods = [
     {
       id: 'bitcoin',
@@ -52,13 +55,74 @@
 
   async function generateInvoice() {
     try {
-      const response = await fetch(`https://getalby.com/lnurlp/milad/callback?amount=${satoshis * 1000}`);
+      const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis*1000}`);
       const data = await response.json();
-      invoice = data.pr;
+      invoice = data.invoice.pr;
+      verifyUrl = data.invoice.verify;
+      startPaymentCheck();
     } catch (error) {
       console.error('Error generating invoice:', error);
+      paymentResult = 'Error generating invoice. Please try again.';
     }
   }
+
+  function startPaymentCheck() {
+    if (!verifyUrl) return;
+    
+    const checkInterval = setInterval(async () => {
+      try {
+        const response = await fetch(verifyUrl);
+        const data = await response.json();
+        
+        if (data.status === 'OK') {
+          if (data.settled) {
+            paymentResult = 'Payment successful! ✅';
+            clearInterval(checkInterval);
+          } else {
+            paymentResult = 'Waiting for payment...';
+          }
+        }
+      } catch (error) {
+        console.error('Error checking payment:', error);
+        paymentResult = 'Error checking payment status';
+      }
+    }, 2000); // Check every 2 seconds
+
+    // Cleanup interval after 10 minutes
+    setTimeout(() => {
+      clearInterval(checkInterval);
+    }, 600000);
+  }
+
+  async function checkPaymentStatus() {
+    if (!verifyUrl) {
+      paymentResult = 'No active invoice to check';
+      return;
+    }
+
+    isChecking = true;
+    paymentResult = 'Checking payment status...';
+
+    try {
+      const response = await fetch(verifyUrl);
+      const data = await response.json();
+      
+      if (data.status === 'OK') {
+        if (data.settled) {
+          paymentResult = 'Payment successful! ✅';
+        } else {
+          paymentResult = 'Payment pending. Please complete the payment.';
+        }
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      paymentResult = 'Could not verify payment status. Please try again.';
+    } finally {
+      isChecking = false;
+    }
+  }
+
+ 
 
   function handleClose() {
     show = false;
@@ -143,6 +207,26 @@
                 <p>Scan QR Code to Pay</p>
                 <img src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=150x150`} alt="QR Code" />
               </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <button 
+                class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" 
+                on:click={checkPaymentStatus}
+                disabled={isChecking || !invoice}
+              >
+                {#if isChecking}
+                  <Icon icon="material-symbols:sync" class="animate-spin" />
+                  Checking...
+                {:else}
+                  Check Payment Status
+                {/if}
+              </button>
+              {#if paymentResult}
+                <p class="mt-2 text-sm" class:text-green-500={paymentResult.includes('successful')} class:text-red-500={paymentResult.includes('Error')}>
+                  {paymentResult}
+                </p>
+              {/if}
             </div>
           </div>
         {/if}
