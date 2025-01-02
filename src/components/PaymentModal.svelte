@@ -112,8 +112,8 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ref: 'main',
-          inputs: {
+          ref: 'main', 
+            inputs: {
             username: githubId,
             repositories: repositories.join(',')
           }
@@ -121,9 +121,12 @@
       });
       
       if (!response.ok) {
-        throw new Error('Failed to add collaborator');
+        const errorData = await response.text();
+        console.error('GitHub API Error:', errorData);
+        throw new Error(`Failed to add collaborator: ${response.status}`);
       }
       
+      console.log('Successfully triggered workflow');
       return true;
     } catch (error) {
       console.error('Error adding collaborator:', error);
