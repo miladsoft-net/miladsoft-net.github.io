@@ -10,7 +10,14 @@
     if (isInCart) {
       window.location.href = '/cart/'
     } else {
-      cart.addItem(item)
+      const cartItem: CartItem = {
+        slug: item.slug,
+        title: item.title,
+        price: item.price,
+        salePrice: item.salePrice,
+        repoUrl: item.repoUrl
+      }
+      cart.addItem(cartItem)
     }
   }
 </script>

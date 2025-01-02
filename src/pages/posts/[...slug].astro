@@ -46,6 +46,14 @@ const jsonLd = {
   inLanguage: (entry.data.lang ? entry.data.lang.replace('_', '-') : siteConfig.lang.replace('_', '-')),
   // TODO include cover image here
 }
+
+const cartItem = {
+  slug: entry.slug,
+  title: entry.data.title,
+  price: entry.data.price,
+  salePrice: entry.data.salePrice,
+  repoUrl: entry.data.repoUrl
+};
 ---
 <MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
@@ -130,12 +138,7 @@ const jsonLd = {
                 <div class="cart-button-container">
                     <AddToCartButton
                     client:load
-                    item={{
-                        slug: entry.slug,
-                        title: entry.data.title,
-                        price: entry.data.price,
-                        salePrice: entry.data.salePrice
-                    }}
+                    item={cartItem}
                     />
                 </div>
             }

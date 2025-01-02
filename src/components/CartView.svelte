@@ -18,7 +18,9 @@
       {#each $cart as item}
         <div class="cart-item">
           <div class="item-info">
-            <h3 class="text-black/90 dark:text-white/90">{item.title}</h3>
+            <a href={`/posts/${item.slug}/`} class="text-black/90 dark:text-white/90 font-medium hover:underline">
+              {item.title}
+            </a>
             <div class="price">
               {#if item.salePrice}
                 <span class="text-black/30 dark:text-white/30 line-through">${item.price}</span>
@@ -27,6 +29,16 @@
                 <span class="text-black/70 dark:text-white/70">${item.price}</span>
               {/if}
             </div>
+            {#if item.repoUrl}
+              <div class="repo-link">
+                <Icon icon="mdi:github" class="inline-block mr-1 w-4 h-4  text-black/70 dark:text-white/70" />
+                <a href={item.repoUrl} target="_blank" rel="noopener noreferrer" 
+                   class="text-[var(--primary)] text-sm hover:underline inline-flex items-center gap-1">
+                  Repository
+                  <Icon icon="material-symbols:open-in-new" class="w-3 h-3  text-black/70 dark:text-white/70" />
+                </a>
+              </div>
+            {/if}
           </div>
           <button class="remove" on:click={() => cart.removeItem(item.slug)}>
             <Icon icon="material-symbols:delete-outline" class="text-black/30 dark:text-white/30 w-8 h-8"/>
@@ -165,5 +177,13 @@
     cursor: not-allowed;
     transform: none;
     background: var(--text-muted);
+  }
+
+  .repo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    color: var(--text-muted);
   }
 </style>
