@@ -103,6 +103,7 @@
   {/if}
 </div>
 
+<!-- Move PaymentModal outside any containers -->
 <PaymentModal 
   bind:show={showPaymentModal} 
   {total}

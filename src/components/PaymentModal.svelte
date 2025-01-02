@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
   import { createEventDispatcher } from 'svelte';
+  import { portal } from '../utils/portal'; // Updated import
 
   const dispatch = createEventDispatcher();
   
@@ -60,87 +61,88 @@
   }
 </script>
 
-<div class="modal-overlay" class:show on:click={handleClose}>
-  <div class="modal-content text-black/90 dark:text-white/90" on:click|stopPropagation>
-    <div class="modal-header">
-      <h2 class="text-xl font-bold flex items-center gap-2">
-        <Icon icon="material-symbols:payments-outline" class="w-6 h-6" />
-        Select Payment Method
-      </h2>
-      <button class="close-btn text-black/50 dark:text-white/50 hover:text-black/80 dark:hover:text-white/80" on:click={handleClose}>
-        <Icon icon="material-symbols:close" class="w-6 h-6" />
-      </button>
-    </div>
-
-    <div class="payment-methods">
-      {#each paymentMethods as method}
-        <button 
-          class="payment-method group"
-          class:selected={selectedMethod === method.id}
-          on:click={() => handlePaymentSelect(method.id)}
-        >
-          <div class="icon-wrapper">
-            <Icon icon={method.icon} class="w-6 h-6" />
-          </div>
-          <div class="flex-1">
-            <span class="font-medium block">{method.name}</span>
-            <span class="text-sm text-black/60 dark:text-white/60 group-hover:text-black/80 dark:group-hover:text-white/80">{method.description}</span>
-          </div>
-          <Icon icon="material-symbols:chevron-right" class="w-5 h-5 text-black/30 dark:text-white/30 group-hover:text-black/60 dark:group-hover:text-white/60" />
-        </button>
-      {/each}
-    </div>
-
-    {#if selectedMethod}
-      <div class="payment-details">
-        <div class="flex items-center justify-between mb-4">
-          <div class="text-sm">
-            <p class="text-black/60 dark:text-white/60">Total Amount</p>
-            <p class="text-lg font-bold">${total.toFixed(2)}</p>
-          </div>
-          <div class="text-sm text-right">
-            <p class="text-black/60 dark:text-white/60">Network</p>
-            <p class="font-medium">{paymentMethods.find(m => m.id === selectedMethod)?.network}</p>
-          </div>
-        </div>
-
-        <div class="address-box bg-black/[0.02] dark:bg-white/[0.02]">
-          <code class="text-sm break-all">{paymentMethods.find(m => m.id === selectedMethod)?.address}</code>
-          <button 
-            class="copy-btn text-black/50 dark:text-white/50 hover:text-black/80 dark:hover:text-white/80" 
-            on:click={() => copyAddress(paymentMethods.find(m => m.id === selectedMethod)?.address || '')}
-          >
-            <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
+{#if show}
+  <div use:portal={'body'}>
+    <div class="modal-backdrop" class:show on:click={handleClose}>
+      <div class="modal-content text-black/90 dark:text-white/90" on:click|stopPropagation>
+        <div class="modal-header">
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            <Icon icon="material-symbols:payments-outline" class="w-6 h-6" />
+            Select Payment Method
+          </h2>
+          <button class="close-btn text-black/50 dark:text-white/50 hover:text-black/80 dark:hover:text-white/80" on:click={handleClose}>
+            <Icon icon="material-symbols:close" class="w-6 h-6" />
           </button>
         </div>
 
-        <div class="qr-code-container bg-white p-4 rounded-lg mt-4 flex items-center justify-center">
-          <div class="qr-placeholder text-black/30 text-sm text-center">
-            <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mx-auto mb-2" />
-            <p>Scan QR Code to Pay</p>
-          </div>
+        <div class="payment-methods">
+          {#each paymentMethods as method}
+            <button 
+              class="payment-method group"
+              class:selected={selectedMethod === method.id}
+              on:click={() => handlePaymentSelect(method.id)}
+            >
+              <div class="icon-wrapper">
+                <Icon icon={method.icon} class="w-6 h-6" />
+              </div>
+              <div class="flex-1">
+                <span class="font-medium block">{method.name}</span>
+                <span class="text-sm text-black/60 dark:text-white/60 group-hover:text-black/80 dark:group-hover:text-white/80">{method.description}</span>
+              </div>
+              <Icon icon="material-symbols:chevron-right" class="w-5 h-5 text-black/30 dark:text-white/30 group-hover:text-black/60 dark:group-hover:text-white/60" />
+            </button>
+          {/each}
         </div>
+
+        {#if selectedMethod}
+          <div class="payment-details">
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-sm">
+                <p class="text-black/60 dark:text-white/60">Total Amount</p>
+                <p class="text-lg font-bold">${total.toFixed(2)}</p>
+              </div>
+              <div class="text-sm text-right">
+                <p class="text-black/60 dark:text-white/60">Network</p>
+                <p class="font-medium">{paymentMethods.find(m => m.id === selectedMethod)?.network}</p>
+              </div>
+            </div>
+
+            <div class="address-box bg-black/[0.02] dark:bg-white/[0.02]">
+              <code class="text-sm break-all">{paymentMethods.find(m => m.id === selectedMethod)?.address}</code>
+              <button 
+                class="copy-btn text-black/50 dark:text-white/50 hover:text-black/80 dark:hover:text-white/80" 
+                on:click={() => copyAddress(paymentMethods.find(m => m.id === selectedMethod)?.address || '')}
+              >
+                <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
+              </button>
+            </div>
+
+            <div class="qr-code-container bg-white p-4 rounded-lg mt-4 flex items-center justify-center">
+              <div class="qr-placeholder text-black/30 text-sm text-center">
+                <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mx-auto mb-2" />
+                <p>Scan QR Code to Pay</p>
+              </div>
+            </div>
+          </div>
+        {/if}
       </div>
-    {/if}
+    </div>
   </div>
-</div>
+{/if}
 
 <style>
-  .modal-overlay {
+  /* Modal Base */
+  .modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    display: none;
+    backdrop-filter: blur(4px);
+    display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-  }
-
-  .modal-overlay.show {
-    display: flex;
+    z-index: 99999;
+    padding: 1rem;
+    isolation: isolate;
   }
 
   .modal-content {
@@ -151,8 +153,12 @@
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+    position: relative;
+    z-index: 100000;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
 
+  /* Header */
   .modal-header {
     display: flex;
     justify-content: space-between;
@@ -160,6 +166,7 @@
     margin-bottom: 1.5rem;
   }
 
+  /* Payment Methods */
   .payment-methods {
     display: grid;
     gap: 1rem;
@@ -187,7 +194,7 @@
     color: white;
   }
 
-  .payment-method.selected .text-black\/60 {
+  .payment-method.selected :global(.text-black\/60) {
     color: rgba(255, 255, 255, 0.8);
   }
 
@@ -205,6 +212,7 @@
     background: rgba(255, 255, 255, 0.2);
   }
 
+  /* Payment Details */
   .payment-details {
     padding: 1rem;
     background: var(--bg-secondary);
@@ -230,4 +238,26 @@
   .copy-btn:hover {
     background: var(--bg-hover);
   }
+
+  /* Animation */
+  @keyframes modal-in {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .modal-content {
+    animation: modal-in 0.2s ease-out forwards;
+  }
+
+  /* Dark Mode Overrides */
+  :global(.dark) .modal-content {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
 </style>
+
