@@ -77,7 +77,7 @@
   }));
 </script>
 
-<div class="min-h-[300px]">
+<div class="min-h-[200px]">
   {#if $cart.length === 0}
     <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
       <Icon icon="material-symbols:shopping-cart-outline" 
@@ -89,7 +89,7 @@
   {:else}
     <div class="flex flex-col gap-4" in:fade>
       {#each $cart as item}
-        <div class="flex justify-between items-center p-4 bg-white dark:bg-gray-700/50 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+        <div class="flex justify-between items-center p-4 bg-[var(--page-bg)] rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
              in:fly="{{ y: 20, duration: 300 }}">
           <div>
             <a href={`/posts/${item.slug}/`} 
