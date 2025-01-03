@@ -1,24 +1,31 @@
 <script lang="ts">
   import { cart } from '../store/cartStore'
   import type { CartItem } from '../store/cartStore'
+  import { toast } from '../lib/toast'
   
   export let item: CartItem
   
   $: isInCart = $cart.some(i => i.slug === item.slug)
 
   function handleClick() {
-    if (isInCart) {
-      window.location.href = '/cart/'
-    } else {
-      const cartItem: CartItem = {
-        slug: item.slug,
-        title: item.title,
-        price: item.price,
-        salePrice: item.salePrice,
-        repoUrl: item.repoUrl,
-        repositories: item.repositories || [] 
+    try {
+      if (isInCart) {
+        window.location.href = '/cart/'
+      } else {
+        const cartItem: CartItem = {
+          slug: item.slug,
+          title: item.title,
+          price: item.price,
+          salePrice: item.salePrice,
+          downloadUrl: item.downloadUrl,
+          addedAt: new Date().toISOString()
+        }
+        cart.addItem(cartItem)
+        toast.success(`${item.title} added to cart`)
       }
-      cart.addItem(cartItem)
+    } catch (error) {
+      console.error('Failed to add item to cart:', error)
+      toast.error('Failed to add item to cart')
     }
   }
 </script>

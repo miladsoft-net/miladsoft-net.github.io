@@ -1,36 +1,31 @@
 <script lang="ts">
   import { downloadStore } from '../store/downloadStore';
+  import { downloadFile } from '../lib/download';
   import Icon from '@iconify/svelte';
 
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString();
   }
 
-  // Add download handling
   async function handleDownload(download: any) {
+    const button = document.getElementById(`download-${download.downloadToken}`);
+    if (button) button.classList.add('opacity-50', 'cursor-wait');
+
     try {
-      const response = await fetch(download.downloadUrl);
-      if (!response.ok) throw new Error('Download failed');
-      
-      // Get the blob
-      const blob = await response.blob();
-      
-      // Create object URL
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create temporary link and click it
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = download.productTitle + '.zip'; // Set filename
-      document.body.appendChild(a);
-      a.click();
-      
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const success = await downloadFile(
+        `/api/download/${download.slug}`,
+        `${download.productTitle}.zip`,
+        download.downloadToken
+      );
+
+      if (!success) {
+        throw new Error('Download failed');
+      }
     } catch (error) {
       console.error('Download error:', error);
       alert('Failed to download file. Please try again.');
+    } finally {
+      if (button) button.classList.remove('opacity-50', 'cursor-wait');
     }
   }
 </script>
@@ -56,8 +51,9 @@
           </div>
           <div class="p-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end items-center">
             <button
+              id="download-{download.downloadToken}"
               on:click={() => handleDownload(download)}
-              class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium shadow-sm hover:shadow-md active:scale-95"
+              class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Icon icon="material-symbols:download" class="w-5 h-5" />
               <span>Download</span>

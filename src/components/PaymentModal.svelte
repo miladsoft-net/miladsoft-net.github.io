@@ -163,7 +163,9 @@
           token: downloadToken,
           slug: post.slug,
           userId: getCurrentUserId(), // Implement this function
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          downloads: 0, // Initial download count
+          maxDownloads: 3 // Maximum allowed downloads
         });
       }
 

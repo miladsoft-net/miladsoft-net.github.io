@@ -5,6 +5,8 @@ export interface CartItem {
   title: string;
   price: number;
   salePrice?: number;
+  downloadUrl: string;
+  addedAt?: string;
 }
 
 const STORAGE_KEY = 'cart-items';
