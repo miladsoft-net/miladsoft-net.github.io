@@ -1,0 +1,39 @@
+name: Add Collaborator to Repos
+
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: 'GitHub Username'
+        required: true
+        type: string
+      repositories:
+        description: 'Comma-separated list of repositories'
+        required: true
+        type: string
+
+jobs:
+  add-collaborator:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Add collaborator to repositories
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          IFS=',' read -ra REPOS <<< "${{ github.event.inputs.repositories }}"
+          for repo in "${REPOS[@]}"; do
+            repo=$(echo $repo | xargs)
+            echo "Adding collaborator to $repo"
+            curl -X PUT \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/miladsoft-net/$repo/collaborators/${{ github.event.inputs.username }}" \
+              -d '{"permission":"push"}'
+            if [ $? -eq 0 ]; then
+              echo "Successfully added collaborator to $repo"
+            else
+              echo "Failed to add collaborator to $repo"
+              exit 1
+            fi
+          done
