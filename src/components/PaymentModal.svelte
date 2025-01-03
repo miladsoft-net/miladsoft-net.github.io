@@ -105,15 +105,15 @@
   async function addGitHubCollaborator() {
     try {
       console.log('Starting workflow trigger for:', githubId, repositories);
-      
-       const response = await fetch(
+
+      const workflowResponse = await fetch(
         'https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches',
         {
           method: 'POST',
           headers: {
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json',
-            'Authorization': `token ${import.meta.env.VITE_GITHUB_TOKEN}`
+            'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`
           },
           body: JSON.stringify({
             ref: 'main',
@@ -128,13 +128,35 @@
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`Workflow trigger failed: ${response.status}`);
+      if (!workflowResponse.ok) {
+        const errorDetails = await workflowResponse.json();
+        throw new Error(`Workflow trigger failed: ${workflowResponse.status}, ${errorDetails.message}`);
       }
 
-      // انتظار برای تکمیل workflow
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      return true;
+      console.log('Workflow triggered successfully.');
+
+      // Poll the status of the workflow
+      const workflowRunsUrl = `https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/runs`;
+      for (let i = 0; i < 10; i++) { // Maximum 10 attempts
+        const statusResponse = await fetch(workflowRunsUrl, {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        const statusData = await statusResponse.json();
+        const latestRun = statusData.workflow_runs?.[0];
+        
+        if (latestRun && latestRun.status === 'completed') {
+          console.log('Workflow completed:', latestRun.conclusion);
+          return latestRun.conclusion === 'success';
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+      }
+
+      throw new Error('Workflow did not complete within the expected time.');
 
     } catch (error) {
       console.error('Error in addGitHubCollaborator:', error);
@@ -159,9 +181,9 @@
         paymentResult = '✅ Payment successful! Adding repository access...';
         const collaboratorAdded = await addGitHubCollaborator();
         if (collaboratorAdded) {
-          paymentResult = '✅ Success! You now have read access to the repositories.';
+          paymentResult = '✅ Success! Repository access has been granted. Please check your email for invitations.';
         } else {
-          paymentResult = '⚠️ Payment successful but there was an issue granting repository access. Please contact support.';
+          paymentResult = '⚠️ Payment successful but there was an issue with repository access. Our team will review and process manually.';
         }
       } else if (data.status === 'OK') {
         paymentResult = '⏳ Payment pending. Please complete the payment.';
@@ -173,8 +195,6 @@
       isChecking = false;
     }
   }
-
- 
 
   function handleClose() {
     show = false;

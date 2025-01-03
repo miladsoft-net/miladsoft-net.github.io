@@ -20,9 +20,6 @@ jobs:
       id-token: write
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Add repository access
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
@@ -31,26 +28,19 @@ jobs:
           for repo in "${REPOS[@]}"; do
             repo=$(echo $repo | xargs)
             echo "Processing repository: $repo"
-            
-            # Add collaborator with read access
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" \
+
+            response=$(curl -s -w "%{http_code}" -o response.txt \
               -X PUT \
               -H "Authorization: token $GH_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/miladsoft-net/$repo/collaborators/${{ github.event.inputs.username }}" \
               -d '{"permission":"pull"}')
-            
-            if [ "$status_code" = "201" ] || [ "$status_code" = "204" ]; then
+
+            if [ "$response" = "201" ] || [ "$response" = "204" ]; then
               echo "✓ Successfully added read access to $repo"
             else
-              echo "✗ Failed to add access to $repo (Status: $status_code)"
+              echo "✗ Failed to add access to $repo (Status: $response)"
+              echo "Error details: $(cat response.txt)"
               exit 1
             fi
           done
-
-      - name: Send notification
-        if: always()
-        run: |
-          echo "::set-output name=status::${{ job.status }}"
-          echo "::set-output name=username::${{ github.event.inputs.username }}"
-          echo "::set-output name=repositories::${{ github.event.inputs.repositories }}"
