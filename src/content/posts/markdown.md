@@ -8,7 +8,7 @@ draft: false
 isFree: false
 price: 5
 salePrice: 0.05
-repoUrl: "https://github.com/miladsoft-net/repo-private"
+downloadUrl: "https://example.com/download/markdown"
 ---
 
 # An h1 header

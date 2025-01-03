@@ -9,7 +9,7 @@ category: 'Examples'
 draft: false
 isFree: false
 price: 29.99
-repoUrl: "https://github.com/miladsoft-net/guide-repository"
+downloadUrl: "https://example.com/download/markdown-extended"
 ---
 
 ## GitHub Repository Cards

@@ -6,7 +6,7 @@ tags: [Example, Video]
 category: Examples
 draft: false
 isFree: true
-repoUrl: https://github.com/yourusername/private-repo-name
+downloadUrl: https://example.com/download/video
 ---
 
 Just copy the embed code from YouTube or other platforms, and paste it in the markdown file.

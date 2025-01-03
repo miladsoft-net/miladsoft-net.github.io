@@ -6,7 +6,7 @@ category: Examples
 draft: true
 isFree: false
 price: 29.99
-repoUrl: "https://github.com/miladsoft-net/guide-repository"
+downloadUrl: "https://example.com/download/draft"
 ---
 
 # This Article is a Draft

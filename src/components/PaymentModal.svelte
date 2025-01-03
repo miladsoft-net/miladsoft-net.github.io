@@ -1,9 +1,12 @@
 <script lang="ts">
+  // Remove SvelteKit import
+  // import { goto } from '$app/navigation';
   import Icon from '@iconify/svelte';
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { portal } from '../utils/portal'; // Updated import
   import { fade, scale, blur } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
+  import { downloadStore } from '../store/downloadStore';
 
   const dispatch = createEventDispatcher();
   
@@ -106,6 +109,7 @@
 
  
   async function checkPaymentStatus() {
+    const downloadUrl = `https://github.com/${githubId}`; // Generate download URL from githubId
     if (!verifyUrl) {
       paymentResult = '⚠️ No active invoice to check';
       return;
@@ -119,13 +123,33 @@
       const data = await response.json();
       
       if (data.status === 'OK' && data.settled) {
-        paymentResult = '✅ Payment successful! You can download ...';
-        const collaboratorAdded = await ShowDownloadLinks();
-        if (collaboratorAdded) {
-          paymentResult = '✅ Success! Repository access has been granted. Please check your email for invitations.';
-        } else {
-          paymentResult = '⚠️ Payment successful but there was an issue with repository access. Our team will review and process manually.';
-        }
+        // Show success message in full modal
+        const successMessage = document.createElement('div');
+        successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
+        successMessage.innerHTML = `
+          <div class="text-center p-8">
+            <div class="text-6xl mb-4">✅</div>
+            <h2 class="text-2xl font-bold mb-4">Payment Successful!</h2>
+            <p class="mb-4">Redirecting to downloads page...</p>
+          </div>
+        `;
+        document.body.appendChild(successMessage);
+
+        // Add purchase to download store
+        downloadStore.addDownload({
+          productTitle: repositories[0], // Use first repository as title
+          date: new Date().toISOString(),
+          price: total,
+          downloadUrl: downloadUrl
+        });
+
+        // Close modal and redirect after 2 seconds
+        setTimeout(() => {
+          show = false;
+          document.body.removeChild(successMessage);
+          // Replace goto with window.location
+          window.location.href = '/downloads';
+        }, 2000);
       } else if (data.status === 'OK') {
         paymentResult = '⏳ Payment pending. Please complete the payment.';
       }
