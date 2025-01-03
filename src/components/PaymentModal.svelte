@@ -64,8 +64,13 @@
     paymentResult = '';
     
     try {
-      const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?amount=${satoshis*1000}`);
+      const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis*1000}`);
       const data = await response.json();
+      
+      if (!data.invoice || !data.invoice.pr) {
+        throw new Error('Invalid response from API');
+      }
+      
       invoice = data.invoice.pr;
       verifyUrl = data.invoice.verify;
       startPaymentCheck();
@@ -105,6 +110,10 @@
     }, 600000);
   }
 
+  interface ExtendedWindow extends Window {
+    confetti: (options: any) => void;
+  }
+
   async function handleSuccessfulPayment() {
     // Add confetti effect
     const confetti = document.createElement('script');
@@ -112,7 +121,7 @@
     document.head.appendChild(confetti);
     
     confetti.onload = () => {
-      window.confetti({
+      (window as unknown as ExtendedWindow).confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }

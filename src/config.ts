@@ -5,6 +5,7 @@ import type {
   SiteConfig,
 } from './types/config'
 import { LinkPreset } from './types/config'
+import { downloadStore } from './store/downloadStore'
 
 export const siteConfig: SiteConfig = {
   title: 'Miladsoft',
@@ -46,6 +47,11 @@ export const navBarConfig: NavBarConfig = {
       name: 'Cart',
       url: '/cart/',  
     },
+    // Conditionally add the Downloads link
+    ...downloadStore.getDownloads().length > 0 ? [{
+      name: 'Downloads',
+      url: '/downloads/',
+    }] : [],
     {
       name: 'GitHub',
       url: 'https://github.com/miladsoft-net',     // Internal links should not include the base path, as it is automatically added

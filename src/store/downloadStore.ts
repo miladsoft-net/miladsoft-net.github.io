@@ -32,6 +32,13 @@ function createDownloadStore() {
         }
         return newStore;
       });
+    },
+    getDownloads: () => {
+      let downloads: Download[] = [];
+      subscribe(store => {
+        downloads = store.downloads;
+      })();
+      return downloads;
     }
   };
 }
