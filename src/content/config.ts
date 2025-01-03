@@ -1,5 +1,29 @@
 import { defineCollection, z } from 'astro:content'
 
+// Define the type for post data
+interface PostSchema {
+  slug: string;
+  data: {
+    title: string;
+    published: Date;
+    updated?: Date;
+    draft?: boolean;
+    description?: string;
+    image?: string;
+    tags?: string[];
+    category?: string;
+    lang?: string;
+    isFree: boolean;
+    price?: number;
+    salePrice?: number;
+    downloadUrl?: string;
+    prevTitle: string;
+    prevSlug: string;
+    nextTitle: string;
+    nextSlug: string;
+  }
+}
+
 const postsCollection = defineCollection({
   schema: z.object({
     title: z.string(),
@@ -15,8 +39,8 @@ const postsCollection = defineCollection({
     price: z.number().optional(),
     salePrice: z.number().optional(),
     downloadUrl: z.string().url().optional().superRefine((val, ctx) => {
-       if (ctx.path.includes('isFree') && !ctx.path[ctx.path.indexOf('isFree') + 1]) {
-         if (!val) {
+      if (ctx.path.includes('isFree') && !ctx.path[ctx.path.indexOf('isFree') + 1]) {
+        if (!val) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Download URL is required for paid content",
@@ -37,3 +61,6 @@ const postsCollection = defineCollection({
 export const collections = {
   posts: postsCollection,
 }
+
+// Export the type for use in other files
+export type Post = PostSchema;

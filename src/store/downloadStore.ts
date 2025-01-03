@@ -1,11 +1,13 @@
 import { writable } from 'svelte/store';
 
-interface Download {
+export interface Download {
+  slug: string;
   productTitle: string;
-  date: string;
   price: number;
+  date: string;
+  downloadToken: string;
   downloadUrl: string;
-  downloadToken: string; // Add token field
+  purchased: boolean;
 }
 
 interface DownloadStore {
@@ -13,27 +15,19 @@ interface DownloadStore {
 }
 
 function createDownloadStore() {
-  // Initialize from localStorage if available
-  const initialDownloads = typeof window !== 'undefined' ? 
-    JSON.parse(localStorage.getItem('downloads') || '{"downloads":[]}') : 
-    { downloads: [] };
-
-  const { subscribe, set, update } = writable<DownloadStore>(initialDownloads);
+  const { subscribe, set, update } = writable<DownloadStore>({
+    downloads: []
+  });
 
   return {
     subscribe,
-    addDownload: (download: Download) => {
-      update(store => {
-        const newStore = {
-          downloads: [...store.downloads, download]
-        };
-        // Save to localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('downloads', JSON.stringify(newStore));
-        }
-        return newStore;
-      });
-    },
+    addDownload: (download: Download) => update(store => ({
+      downloads: [...store.downloads, { ...download, purchased: true }]
+    })),
+    removeDownload: (slug: string) => update(store => ({
+      downloads: store.downloads.filter(d => d.slug !== slug)
+    })),
+    clear: () => set({ downloads: [] }),
     getDownloads: () => {
       let downloads: Download[] = [];
       subscribe(store => {

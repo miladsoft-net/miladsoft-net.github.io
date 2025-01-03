@@ -155,7 +155,9 @@
           date: new Date().toISOString(),
           price: product.price,
           downloadUrl: `/api/download/${post.slug}?token=${downloadToken}`, // Secure download URL
-          downloadToken // Store token for verification
+          downloadToken, // Store token for verification
+          slug: post.slug,
+          purchased: true
         });
 
         // Store token in server/database for verification
