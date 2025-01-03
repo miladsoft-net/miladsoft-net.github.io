@@ -296,7 +296,7 @@
                 </div>
                 <div class="flex-1">
                   <span
-                    class="font-medium block text-gray-900 dark:text-gray-100"
+                    class="font-medium block text-gray-900 dark:text-white"
                     >{method.name}</span
                   >
                   <span class="text-sm text-gray-600 dark:text-gray-400"
@@ -305,7 +305,7 @@
                 </div>
                 <Icon
                   icon="material-symbols:chevron-right"
-                  class="w-5 h-5 text-gray-400"
+                  class="w-5 h-5 text-gray-900 dark:text-gray-100"
                 />
               </button>
             {/each}
