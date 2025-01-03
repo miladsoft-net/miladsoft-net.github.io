@@ -30,8 +30,8 @@
             </a>
             <div class="flex gap-2 items-center">
               {#if item.salePrice}
-                <span class="text-black/30 line-through">${item.price}</span>
-                <span class="text-blue-500">${item.salePrice}</span>
+                <span class="text-black/50 dark:text-white/50 line-through">${item.price}</span>
+                <span class="text-[var(--primary)]">${item.salePrice}</span>
               {:else}
                 <span class="text-black/50 dark:text-white/50">${item.price}</span>
               {/if}

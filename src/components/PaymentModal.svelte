@@ -342,7 +342,6 @@
 
                   <!-- QR code section with better centering and rounded corners -->
                   <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-[var(--card-bg)] rounded-xl">
-                    <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mb-4 text-gray-400" />
                     <p class="text-gray-400 mb-4">Scan QR Code to Pay</p>
                     <!-- Added container with fixed dimensions for QR code -->
                     <div class="w-[200px] h-[200px] relative flex items-center justify-center">
