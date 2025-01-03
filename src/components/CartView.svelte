@@ -57,7 +57,7 @@
   }));
 </script>
 
-<div class="min-h-[300px] bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
+<div class="min-h-[300px]">
   {#if $cart.length === 0}
     <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
       <Icon icon="material-symbols:shopping-cart-outline" 

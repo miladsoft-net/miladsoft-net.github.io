@@ -84,58 +84,91 @@
   }
 </script>
 
-<div class="max-w-6xl mx-auto p-4">
+<div class="max-w-4xl mx-auto p-4">
   {#if uniqueDownloads.length === 0}
-    <div class="text-center py-12 animate-fadeIn bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl">
+    <div class="text-center py-8 bg-white/30 dark:bg-gray-800/30 rounded-lg">
       <Icon icon="material-symbols:download" 
-            class="w-24 h-24 mx-auto text-[var(--primary)] opacity-40 animate-bounce"/>
-      <p class="mt-6 text-gray-600 dark:text-gray-300 text-xl font-medium">
-        No downloads available
-      </p>
+            class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500"/>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">No downloads available</p>
     </div>
   {:else}
     <div class="space-y-4">
       {#each uniqueDownloads as download (getUniqueKey(download))}
-        <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl 
-                    overflow-hidden transform transition-all duration-300 hover:scale-[1.01] 
-                    border border-gray-100/20 dark:border-gray-700/20"
-             in:fade={{ duration: 300, delay: 200 }}>
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4">
-            <div class="flex-1">
-              <h3 class="font-medium text-xl text-gray-800 dark:text-gray-100 mb-2">
-                {download.title}
-              </h3>
-              <div class="space-y-3">
-                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                  <Icon icon="mdi:calendar" class="w-4 h-4 text-[var(--primary)]" />
+        <div class="bg-white/90 dark:bg-gray-800/90 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700"
+             in:fade={{ duration: 200 }}>
+          <div class="p-5">
+            <!-- Title with Link -->
+            <a href={`/posts/${download.slug}/`} 
+               class="inline-block text-lg font-medium text-gray-900 dark:text-gray-100 hover:text-[var(--primary)] transition-colors mb-3">
+              {download.title}
+            </a>
+            
+            <!-- File Information Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+              <!-- Purchase Date -->
+              <div>
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <Icon icon="mdi:calendar" class="w-4 h-4" />
+                  <span>Purchased</span>
+                </div>
+                <div class="mt-1 font-medium text-gray-700 dark:text-gray-300">
                   {new Date(download.purchaseDate).toLocaleDateString()}
-                </p>
-                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                  <Icon icon="mdi:download-circle" class="w-4 h-4 text-[var(--primary)]" />
-                  <span>{download.maxDownloads - download.downloads} downloads remaining</span>
-                </p>
+                </div>
+              </div>
+              
+              <!-- Price -->
+              <div>
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <Icon icon="mdi:currency-usd" class="w-4 h-4" />
+                  <span>Price</span>
+                </div>
+                <div class="mt-1 font-medium text-gray-700 dark:text-gray-300">
+                  ${download.price}
+                </div>
+              </div>
+              
+              <!-- Download Count -->
+              <div>
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <Icon icon="mdi:download-circle" class="w-4 h-4" />
+                  <span>Downloads Used</span>
+                </div>
+                <div class="mt-1 font-medium text-gray-700 dark:text-gray-300">
+                  {download.downloads} of {download.maxDownloads}
+                </div>
+              </div>
+              
+              <!-- Expiry Date (30 days from purchase) -->
+              <div>
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <Icon icon="mdi:clock-outline" class="w-4 h-4" />
+                  <span>Expires</span>
+                </div>
+                <div class="mt-1 font-medium text-gray-700 dark:text-gray-300">
+                  {new Date(new Date(download.purchaseDate).getTime() + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString()}
+                </div>
               </div>
             </div>
-            
-            <button
-              class="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 
-                     bg-[var(--primary)] text-white 
-                     rounded-xl font-semibold transition-all duration-300 
-                     hover:shadow-lg hover:-translate-y-1
-                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              on:click={() => handleDownload(download)}
-              disabled={download.downloads >= download.maxDownloads}
-              data-slug={download.slug}
-            >
-              <Icon icon="material-symbols:download" 
-                    class="w-5 h-5 transition-transform group-hover:-translate-y-1" />
-              <span>Download</span>
-            </button>
+
+            <!-- Download Button -->
+            <div class="mt-4 flex justify-end">
+              <button
+                class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-md
+                       transition-all duration-200 hover:opacity-90
+                       disabled:opacity-50 disabled:cursor-not-allowed"
+                on:click={() => handleDownload(download)}
+                disabled={download.downloads >= download.maxDownloads}
+                data-slug={download.slug}
+              >
+                <Icon icon="material-symbols:download" class="w-5 h-5" />
+                <span>Download</span>
+              </button>
+            </div>
           </div>
           
-          <div class="h-2 bg-gray-100 dark:bg-gray-700">
-            <div class="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-darker)] 
-                        transition-all duration-500 ease-out"
+          <!-- Progress Bar -->
+          <div class="h-1 bg-gray-100 dark:bg-gray-700">
+            <div class="h-full bg-[var(--primary)] transition-all duration-300"
                  style="width: {(download.downloads / download.maxDownloads) * 100}%" />
           </div>
         </div>
