@@ -5,6 +5,7 @@ interface Download {
   date: string;
   price: number;
   downloadUrl: string;
+  downloadToken: string; // Add token field
 }
 
 interface DownloadStore {

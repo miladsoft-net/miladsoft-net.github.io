@@ -5,6 +5,34 @@
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString();
   }
+
+  // Add download handling
+  async function handleDownload(download: any) {
+    try {
+      const response = await fetch(download.downloadUrl);
+      if (!response.ok) throw new Error('Download failed');
+      
+      // Get the blob
+      const blob = await response.blob();
+      
+      // Create object URL
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create temporary link and click it
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = download.productTitle + '.zip'; // Set filename
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download file. Please try again.');
+    }
+  }
 </script>
 
 <div class="max-w-4xl mx-auto p-4">
@@ -27,14 +55,13 @@
             </p>
           </div>
           <div class="p-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end items-center">
-            <a
-              href={download.downloadUrl}
+            <button
+              on:click={() => handleDownload(download)}
               class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium shadow-sm hover:shadow-md active:scale-95"
-              download
             >
               <Icon icon="material-symbols:download" class="w-5 h-5" />
               <span>Download</span>
-            </a>
+            </button>
           </div>
         </div>
       {/each}

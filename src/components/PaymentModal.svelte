@@ -7,11 +7,18 @@
   import { fade, scale, blur } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
   import { downloadStore } from '../store/downloadStore';
+  import { getCollection, type CollectionEntry } from 'astro:content';
+  import { storeDownloadToken, getCurrentUserId } from '../services/downloadTokenService';
 
   const dispatch = createEventDispatcher();
   
   export let show = false;
   export let total: number;
+  export let products: Array<{
+    title: string;
+    price: number;
+    slug: string;
+  }>;
 
   let selectedMethod = '';
   let bitcoinPrice = 0;
@@ -128,42 +135,74 @@
       });
     };
 
-    // Show success animation
-    const successMessage = document.createElement('div');
-    successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
-    successMessage.innerHTML = `
-      <div class="text-center p-8 transform scale-up">
-        <div class="success-checkmark">
-          <div class="check-icon">
-            <span class="icon-line line-tip"></span>
-            <span class="icon-line line-long"></span>
-            <div class="icon-circle"></div>
-            <div class="icon-fix"></div>
+    try {
+      // Get all posts from content collection
+      const allPosts = await getCollection('posts');
+      
+      // Add each product to download store
+      for (const product of products) {
+        // Find the corresponding post
+        const post = allPosts.find((p: CollectionEntry<'posts'>) => p.slug === product.slug);
+        
+        if (!post) continue;
+
+        // Generate a secure download token
+        const downloadToken = generateSecureToken();
+
+        // Store the download in downloadStore
+        downloadStore.addDownload({
+          productTitle: product.title,
+          date: new Date().toISOString(),
+          price: product.price,
+          downloadUrl: `/api/download/${post.slug}?token=${downloadToken}`, // Secure download URL
+          downloadToken // Store token for verification
+        });
+
+        // Store token in server/database for verification
+        await storeDownloadToken({
+          token: downloadToken,
+          slug: post.slug,
+          userId: getCurrentUserId(), // Implement this function
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        });
+      }
+
+      // Show success animation
+      const successMessage = document.createElement('div');
+      successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
+      successMessage.innerHTML = `
+        <div class="text-center p-8 transform scale-up">
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Payment Successful!</h2>
+          <p class="text-lg text-gray-600 dark:text-gray-400 mb-4">Thank you for your purchase</p>
+          <div class="animate-bounce">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
           </div>
         </div>
-        <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Payment Successful!</h2>
-        <p class="text-lg text-gray-600 dark:text-gray-400 mb-4">Thank you for your purchase</p>
-        <div class="animate-bounce">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(successMessage);
+      `;
+      document.body.appendChild(successMessage);
 
-    // Add purchase to download store
-    downloadStore.addDownload({
-      productTitle: 'Product', // Use a generic title
-      date: new Date().toISOString(),
-      price: total,
-      downloadUrl: '/downloads/' // Use a generic download URL
-    });
+      // Close modal and redirect after animation
+      setTimeout(() => {
+        show = false;
+        document.body.removeChild(successMessage);
+        window.location.href = '/downloads/';
+      }, 3000);
+    } catch (error) {
+      console.error('Error processing successful payment:', error);
+      // Show error message to user
+    }
+  }
 
-    // Close modal and redirect after animation
-    setTimeout(() => {
-      show = false;
-      document.body.removeChild(successMessage);
-      window.location.href = '/downloads/';
-    }, 3000);
+  function generateSecureToken() {
+    return crypto.randomUUID();
   }
 
   function handleClose() {
@@ -686,7 +725,7 @@
   }
 </style>
 
-<script context="module">
+<script context="module"> 
   // Add/remove body class when modal opens/closes
   function toggleBodyScroll(show: boolean) {
     if (typeof document !== 'undefined') {

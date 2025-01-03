@@ -9,6 +9,13 @@
   function handleCheckout() {
     showPaymentModal = true;
   }
+
+  // Prepare products info for PaymentModal without downloadUrl
+  $: products = $cart.map(item => ({
+    title: item.title,
+    price: item.salePrice || item.price,
+    slug: item.slug
+  }));
 </script>
 
 <div class="min-h-[300px]">
@@ -55,5 +62,6 @@
 <PaymentModal 
   bind:show={showPaymentModal} 
   {total}
+  {products}
   on:close={() => showPaymentModal = false}
 />
