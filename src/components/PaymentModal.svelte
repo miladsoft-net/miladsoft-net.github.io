@@ -12,8 +12,6 @@
   
   export let show = false;
   export let total: number;
-  export let githubId: string;
-  export let repositories: string[]; 
 
   let selectedMethod = '';
   let bitcoinPrice = 0;
@@ -66,7 +64,7 @@
     paymentResult = '';
     
     try {
-      const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis*1000}`);
+      const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?amount=${satoshis*1000}`);
       const data = await response.json();
       invoice = data.invoice.pr;
       verifyUrl = data.invoice.verify;
@@ -89,7 +87,7 @@
         
         if (data.status === 'OK') {
           if (data.settled) {
-            paymentResult = '✅ Payment successful!';
+            handleSuccessfulPayment();
             clearInterval(checkInterval);
           } else {
             paymentResult = '⏳ Waiting for payment...';
@@ -107,58 +105,56 @@
     }, 600000);
   }
 
- 
-  async function checkPaymentStatus() {
-    const downloadUrl = `https://github.com/${githubId}`; // Generate download URL from githubId
-    if (!verifyUrl) {
-      paymentResult = '⚠️ No active invoice to check';
-      return;
-    }
+  async function handleSuccessfulPayment() {
+    // Add confetti effect
+    const confetti = document.createElement('script');
+    confetti.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js';
+    document.head.appendChild(confetti);
+    
+    confetti.onload = () => {
+      window.confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    };
 
-    isChecking = true;
-    paymentResult = '🔄 Checking payment status...';
-
-    try {
-      const response = await fetch(verifyUrl);
-      const data = await response.json();
-      
-      if (data.status === 'OK' && data.settled) {
-        // Show success message in full modal
-        const successMessage = document.createElement('div');
-        successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
-        successMessage.innerHTML = `
-          <div class="text-center p-8">
-            <div class="text-6xl mb-4">✅</div>
-            <h2 class="text-2xl font-bold mb-4">Payment Successful!</h2>
-            <p class="mb-4">Redirecting to downloads page...</p>
+    // Show success animation
+    const successMessage = document.createElement('div');
+    successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
+    successMessage.innerHTML = `
+      <div class="text-center p-8 transform scale-up">
+        <div class="success-checkmark">
+          <div class="check-icon">
+            <span class="icon-line line-tip"></span>
+            <span class="icon-line line-long"></span>
+            <div class="icon-circle"></div>
+            <div class="icon-fix"></div>
           </div>
-        `;
-        document.body.appendChild(successMessage);
+        </div>
+        <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Payment Successful!</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-400 mb-4">Thank you for your purchase</p>
+        <div class="animate-bounce">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(successMessage);
 
-        // Add purchase to download store
-        downloadStore.addDownload({
-          productTitle: repositories[0], // Use first repository as title
-          date: new Date().toISOString(),
-          price: total,
-          downloadUrl: downloadUrl
-        });
+    // Add purchase to download store
+    downloadStore.addDownload({
+      productTitle: 'Product', // Use a generic title
+      date: new Date().toISOString(),
+      price: total,
+      downloadUrl: '/downloads/' // Use a generic download URL
+    });
 
-        // Close modal and redirect after 2 seconds
-        setTimeout(() => {
-          show = false;
-          document.body.removeChild(successMessage);
-          // Replace goto with window.location
-          window.location.href = '/downloads';
-        }, 2000);
-      } else if (data.status === 'OK') {
-        paymentResult = '⏳ Payment pending. Please complete the payment.';
-      }
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-      paymentResult = '❌ Could not verify payment status. Please try again.';
-    } finally {
-      isChecking = false;
-    }
+    // Close modal and redirect after animation
+    setTimeout(() => {
+      show = false;
+      document.body.removeChild(successMessage);
+      window.location.href = '/downloads/';
+    }, 3000);
   }
 
   function handleClose() {
@@ -245,16 +241,6 @@
               class="space-y-6 bg-gray-50 dark:bg-gray-700 rounded-xl p-6"
               transition:scale={{ duration: 200, opacity: 0.5 }}
             >
-              <!-- Repository list with better spacing -->
-              <div class="space-y-3">
-                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Repositories</p>
-                <ul class="list-disc pl-5 space-y-2">
-                  {#each repositories as repo}
-                    <li class="text-gray-900 dark:text-gray-100">{repo}</li>
-                  {/each}
-                </ul>
-              </div>
-
               <!-- Payment info with better spacing -->
               <div class="flex justify-between items-start gap-4">
                 <div>
@@ -308,18 +294,6 @@
 
                   <!-- Payment status section -->
                   <div class="flex flex-col items-center gap-4">
-                    <button 
-                      class="bg-blue-500 text-white px-6 py-2.5 rounded-xl disabled:opacity-50 hover:bg-blue-600 transition-colors" 
-                      on:click={checkPaymentStatus}
-                      disabled={isChecking || !invoice}
-                    >
-                      {#if isChecking}
-                        <Icon icon="material-symbols:sync" class="animate-spin" />
-                        Checking...
-                      {:else}
-                        Check Payment Status
-                      {/if}
-                    </button>
                     {#if paymentResult}
                       <p class="mt-2 text-sm font-medium" class:text-green-500={paymentResult.includes('✅')} 
                         class:text-red-500={paymentResult.includes('❌')}
@@ -580,6 +554,126 @@
   /* Make inner containers match the rounded corners */
   .rounded-xl {
     @apply rounded-2xl;
+  }
+
+  /* Add success checkmark animation styles */
+  .success-checkmark {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+  }
+
+  .check-icon {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    border-radius: 50%;
+    box-sizing: content-box;
+    border: 4px solid #4CAF50;
+  }
+
+  .check-icon::before {
+    top: 3px;
+    left: -2px;
+    width: 30px;
+    transform-origin: 100% 50%;
+    border-radius: 100px 0 0 100px;
+  }
+
+  .check-icon::after {
+    top: 0;
+    left: 30px;
+    width: 60px;
+    transform-origin: 0 50%;
+    border-radius: 0 100px 100px 0;
+    animation: rotate-circle 4.25s ease-in;
+  }
+
+  .check-icon::before, .check-icon::after {
+    content: '';
+    height: 100px;
+    position: absolute;
+    background: #FFFFFF;
+    transform: rotate(-45deg);
+  }
+
+  .icon-line {
+    height: 5px;
+    background-color: #4CAF50;
+    display: block;
+    border-radius: 2px;
+    position: absolute;
+    z-index: 10;
+  }
+
+  .line-tip {
+    top: 46px;
+    left: 14px;
+    width: 25px;
+    transform: rotate(45deg);
+    animation: icon-line-tip 0.75s;
+  }
+
+  .line-long {
+    top: 38px;
+    right: 8px;
+    width: 47px;
+    transform: rotate(-45deg);
+    animation: icon-line-long 0.75s;
+  }
+
+  .icon-circle {
+    top: -4px;
+    left: -4px;
+    z-index: 10;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    position: absolute;
+    box-sizing: content-box;
+    border: 4px solid rgba(76, 175, 80, .5);
+  }
+
+  .icon-fix {
+    top: 8px;
+    width: 5px;
+    left: 26px;
+    z-index: 1;
+    height: 85px;
+    position: absolute;
+    transform: rotate(-45deg);
+    background-color: #FFFFFF;
+  }
+
+  @keyframes rotate-circle {
+    0% { transform: rotate(-45deg); }
+    5% { transform: rotate(-45deg); }
+    12% { transform: rotate(-405deg); }
+    100% { transform: rotate(-405deg); }
+  }
+
+  @keyframes icon-line-tip {
+    0% { width: 0; left: 1px; top: 19px; }
+    54% { width: 0; left: 1px; top: 19px; }
+    70% { width: 50px; left: -8px; top: 37px; }
+    84% { width: 17px; left: 21px; top: 48px; }
+    100% { width: 25px; left: 14px; top: 46px; }
+  }
+
+  @keyframes icon-line-long {
+    0% { width: 0; right: 46px; top: 54px; }
+    65% { width: 0; right: 46px; top: 54px; }
+    84% { width: 55px; right: 0px; top: 35px; }
+    100% { width: 47px; right: 8px; top: 38px; }
+  }
+
+  .scale-up {
+    animation: scale-up 0.4s ease-out;
+  }
+
+  @keyframes scale-up {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
   }
 </style>
 

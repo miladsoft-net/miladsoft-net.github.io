@@ -5,8 +5,6 @@ export interface CartItem {
   title: string;
   price: number;
   salePrice?: number;
-  repoUrl?: string;
-  repositories: string[];
 }
 
 const STORAGE_KEY = 'cart-items';
