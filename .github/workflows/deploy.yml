@@ -30,11 +30,6 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Create env file
-        run: |
-          echo "VITE_GITHUB_TOKEN=${{ secrets.GH_PAT }}" > .env.production
-          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env.production
-
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

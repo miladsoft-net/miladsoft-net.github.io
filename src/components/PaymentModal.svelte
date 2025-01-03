@@ -104,77 +104,7 @@
     }, 600000);
   }
 
-  async function addGitHubCollaborator() {
-    try {
-      // از env متغیر را دریافت می‌کنیم
-      const token = import.meta.env.VITE_GITHUB_TOKEN;
-      if (!token) {
-        console.error('GitHub token not found in environment variables');
-        throw new Error('GitHub token is not configured');
-      }
-
-      console.log('Starting workflow trigger...');
-      const workflowResponse = await fetch(
-        'https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            ref: 'main',
-            inputs: {
-              username: githubId,
-              repositories: repositories
-                .map(repo => repo.replace('https://github.com/miladsoft-net/', ''))
-                .join(',')
-            }
-          })
-        }
-      );
-
-      // Poll workflow status
-      let attempts = 0;
-      const maxAttempts = 10;
-      const pollInterval = 2000; // 2 seconds
-
-      while (attempts < maxAttempts) {
-        const statusResponse = await fetch(
-          `https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/runs?event=workflow_dispatch&status=completed`,
-          {
-            headers: {
-              'Authorization': `token ${token}`,
-              'Accept': 'application/vnd.github.v3+json'
-            }
-          }
-        );
-
-        if (statusResponse.ok) {
-          const data = await statusResponse.json();
-          const latestRun = data.workflow_runs?.[0];
-          
-          if (latestRun?.conclusion === 'success') {
-            console.log('Workflow completed successfully');
-            return true;
-          } else if (latestRun?.conclusion === 'failure') {
-            console.error('Workflow failed:', latestRun);
-            return false;
-          }
-        }
-
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        attempts++;
-      }
-
-      throw new Error('Workflow check timed out');
-    } catch (error) {
-      console.error('GitHub Action Error:', error);
-      return false;
-    }
-  }
-
+ 
   async function checkPaymentStatus() {
     if (!verifyUrl) {
       paymentResult = '⚠️ No active invoice to check';
@@ -189,8 +119,8 @@
       const data = await response.json();
       
       if (data.status === 'OK' && data.settled) {
-        paymentResult = '✅ Payment successful! Adding repository access...';
-        const collaboratorAdded = await addGitHubCollaborator();
+        paymentResult = '✅ Payment successful! You can download ...';
+        const collaboratorAdded = await ShowDownloadLinks();
         if (collaboratorAdded) {
           paymentResult = '✅ Success! Repository access has been granted. Please check your email for invitations.';
         } else {
