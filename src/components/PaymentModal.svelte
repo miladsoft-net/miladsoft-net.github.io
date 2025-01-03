@@ -104,60 +104,48 @@
 
   async function addGitHubCollaborator() {
     try {
-      console.log('Starting workflow trigger for:', githubId, repositories);
+      const token = import.meta.env.VITE_GITHUB_TOKEN;
+      if (!token) {
+        throw new Error('GitHub token not found');
+      }
 
-      const workflowResponse = await fetch(
-        'https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches',
-        {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`
-          },
-          body: JSON.stringify({
-            ref: 'main',
-            inputs: {
-              username: githubId,
-              repositories: repositories
-                .map(repo => repo.split('/').pop())
-                .filter(Boolean)
-                .join(',')
+      console.log('Adding collaborator:', githubId, 'to repositories:', repositories);
+      
+      const results = await Promise.all(repositories.map(async (repoFullPath) => {
+        // Extract repo name from full path
+        const repoName = repoFullPath.split('/').pop();
+        if (!repoName) return false;
+
+        try {
+          const response = await fetch(
+            `https://api.github.com/repos/miladsoft-net/${repoName}/collaborators/${githubId}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ permission: 'pull' })
             }
-          })
-        }
-      );
+          );
 
-      if (!workflowResponse.ok) {
-        const errorDetails = await workflowResponse.json();
-        throw new Error(`Workflow trigger failed: ${workflowResponse.status}, ${errorDetails.message}`);
-      }
-
-      console.log('Workflow triggered successfully.');
-
-      // Poll the status of the workflow
-      const workflowRunsUrl = `https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/runs`;
-      for (let i = 0; i < 10; i++) { // Maximum 10 attempts
-        const statusResponse = await fetch(workflowRunsUrl, {
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json'
+          if (response.status === 201 || response.status === 204) {
+            console.log(`✅ Successfully added to ${repoName}`);
+            return true;
           }
-        });
-
-        const statusData = await statusResponse.json();
-        const latestRun = statusData.workflow_runs?.[0];
-        
-        if (latestRun && latestRun.status === 'completed') {
-          console.log('Workflow completed:', latestRun.conclusion);
-          return latestRun.conclusion === 'success';
+          
+          const error = await response.json();
+          console.error(`Failed to add to ${repoName}:`, error);
+          return false;
+        } catch (error) {
+          console.error(`Error adding to ${repoName}:`, error);
+          return false;
         }
+      }));
 
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-      }
-
-      throw new Error('Workflow did not complete within the expected time.');
-
+      // Check if all repositories were processed successfully
+      return results.every(result => result === true);
     } catch (error) {
       console.error('Error in addGitHubCollaborator:', error);
       return false;
@@ -240,7 +228,7 @@
               <div class="flex-shrink-0">
                 <Icon icon={method.icon} class="w-6 h-6 text-gray-900 dark:text-gray-100" />
               </div>
-              <div class="flex-1">
+              <div class="flex-1"> 
                 <span class="font-medium block text-gray-900 dark:text-gray-100">{method.name}</span>
                 <span class="text-sm text-gray-600 dark:text-gray-400">{method.description}</span>
               </div>
