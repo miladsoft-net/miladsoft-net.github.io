@@ -3,8 +3,13 @@
   "compilerOptions": {
     "baseUrl": ".",
     "strictNullChecks": true,
-    "allowJs": false,
+    "allowJs": true,
     "declaration": true,
+    "checkJs": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
     "plugins": [
       {
         "name": "@astrojs/ts-plugin"
@@ -18,7 +23,9 @@
       "@i18n/*": ["src/i18n/*"],
       "@layouts/*": ["src/layouts/*"],
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["svelte"],
+    "moduleResolution": "bundler"
   },
   "include": ["src/**/*"]
 }
