@@ -33,10 +33,12 @@ jobs:
       - name: Create env file
         run: |
           echo "VITE_GITHUB_TOKEN=${{ secrets.GH_PAT }}" > .env.production
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env.production
 
       - name: Build
         env:
-          VITE_GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm run build
 
       - name: Deploy to GitHub Pages

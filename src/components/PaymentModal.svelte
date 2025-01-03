@@ -2,6 +2,8 @@
   import Icon from '@iconify/svelte';
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { portal } from '../utils/portal'; // Updated import
+  import { fade, scale, blur } from 'svelte/transition';
+  import { quintOut } from 'svelte/easing';
 
   const dispatch = createEventDispatcher();
   
@@ -104,50 +106,71 @@
 
   async function addGitHubCollaborator() {
     try {
+      // از env متغیر را دریافت می‌کنیم
       const token = import.meta.env.VITE_GITHUB_TOKEN;
       if (!token) {
-        throw new Error('GitHub token not found');
+        console.error('GitHub token not found in environment variables');
+        throw new Error('GitHub token is not configured');
       }
 
-      console.log('Adding collaborator:', githubId, 'to repositories:', repositories);
-      
-      const results = await Promise.all(repositories.map(async (repoFullPath) => {
-        // Extract repo name from full path
-        const repoName = repoFullPath.split('/').pop();
-        if (!repoName) return false;
-
-        try {
-          const response = await fetch(
-            `https://api.github.com/repos/miladsoft-net/${repoName}/collaborators/${githubId}`,
-            {
-              method: 'PUT',
-              headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ permission: 'pull' })
+      console.log('Starting workflow trigger...');
+      const workflowResponse = await fetch(
+        'https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/workflows/add-collaborator.yml/dispatches',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ref: 'main',
+            inputs: {
+              username: githubId,
+              repositories: repositories
+                .map(repo => repo.replace('https://github.com/miladsoft-net/', ''))
+                .join(',')
             }
-          );
-
-          if (response.status === 201 || response.status === 204) {
-            console.log(`✅ Successfully added to ${repoName}`);
-            return true;
-          }
-          
-          const error = await response.json();
-          console.error(`Failed to add to ${repoName}:`, error);
-          return false;
-        } catch (error) {
-          console.error(`Error adding to ${repoName}:`, error);
-          return false;
+          })
         }
-      }));
+      );
 
-      // Check if all repositories were processed successfully
-      return results.every(result => result === true);
+      // Poll workflow status
+      let attempts = 0;
+      const maxAttempts = 10;
+      const pollInterval = 2000; // 2 seconds
+
+      while (attempts < maxAttempts) {
+        const statusResponse = await fetch(
+          `https://api.github.com/repos/miladsoft-net/miladsoft-net.github.io/actions/runs?event=workflow_dispatch&status=completed`,
+          {
+            headers: {
+              'Authorization': `token ${token}`,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          }
+        );
+
+        if (statusResponse.ok) {
+          const data = await statusResponse.json();
+          const latestRun = data.workflow_runs?.[0];
+          
+          if (latestRun?.conclusion === 'success') {
+            console.log('Workflow completed successfully');
+            return true;
+          } else if (latestRun?.conclusion === 'failure') {
+            console.error('Workflow failed:', latestRun);
+            return false;
+          }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        attempts++;
+      }
+
+      throw new Error('Workflow check timed out');
     } catch (error) {
-      console.error('Error in addGitHubCollaborator:', error);
+      console.error('GitHub Action Error:', error);
       return false;
     }
   }
@@ -205,120 +228,198 @@
 </script>
 
 {#if show}
-  <div use:portal={'body'} class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
-    <div class="bg-white dark:bg-[var(--card-bg)] rounded-lg shadow-lg w-full max-w-lg max-h-full overflow-auto">
-      <div class="sticky top-0 bg-white dark:bg-[var(--card-bg)] p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+  <div 
+    use:portal={'body'} 
+    class="fixed inset-0 flex items-center justify-center z-50 p-4"
+    transition:fade={{ duration: 200 }}
+  >
+    <!-- Backdrop with blur effect - removed click handler -->
+    <div 
+      class="absolute inset-0 backdrop-blur-sm bg-black/50"
+      transition:blur={{ duration: 200 }}
+    ></div>
+
+    <!-- Modal container with rounded corners -->
+    <div 
+      class="relative bg-white dark:bg-[var(--card-bg)] rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+      transition:scale={{
+        duration: 300,
+        delay: 100,
+        opacity: 0,
+        start: 0.95,
+        easing: quintOut
+      }}
+    >
+      <!-- Header with matching rounded corners -->
+      <div class="sticky top-0 z-10 bg-inherit p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-3xl">
         <h2 class="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
           <Icon icon="material-symbols:payments-outline" class="w-6 h-6" />
           Select Payment Method
         </h2>
-        <button class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" on:click={handleClose}>
-          <Icon icon="material-symbols:close" class="w-6 h-6" />
+        <button 
+          class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
+          on:click={handleClose}
+        >
+          <Icon icon="material-symbols:close" class="w-6 h-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" />
         </button>
       </div>
 
-      <div class="p-4 space-y-4">
-        <div class="grid gap-4">
-          {#each paymentMethods as method}
-            <button 
-              class="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              class:selected={selectedMethod === method.id}
-              on:click={() => handlePaymentSelect(method.id)}
+      <!-- Content with custom scrollbar -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="p-4 space-y-6"> <!-- Increased space-y for better spacing -->
+          <div class="space-y-4"> <!-- Payment methods section -->
+            {#each paymentMethods as method}
+              <button 
+                class="w-full flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                class:selected={selectedMethod === method.id}
+                on:click={() => handlePaymentSelect(method.id)}
+              >
+                <div class="flex-shrink-0">
+                  <Icon icon={method.icon} class="w-6 h-6 text-gray-900 dark:text-gray-100" />
+                </div>
+                <div class="flex-1"> 
+                  <span class="font-medium block text-gray-900 dark:text-gray-100">{method.name}</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{method.description}</span>
+                </div>
+                <Icon icon="material-symbols:chevron-right" class="w-5 h-5 text-gray-400" />
+              </button>
+            {/each}
+          </div>
+
+          {#if selectedMethod}
+            <div 
+              class="space-y-6 bg-gray-50 dark:bg-gray-700 rounded-xl p-6"
+              transition:scale={{ duration: 200, opacity: 0.5 }}
             >
-              <div class="flex-shrink-0">
-                <Icon icon={method.icon} class="w-6 h-6 text-gray-900 dark:text-gray-100" />
-              </div>
-              <div class="flex-1"> 
-                <span class="font-medium block text-gray-900 dark:text-gray-100">{method.name}</span>
-                <span class="text-sm text-gray-600 dark:text-gray-400">{method.description}</span>
-              </div>
-              <Icon icon="material-symbols:chevron-right" class="w-5 h-5 text-gray-400" />
-            </button>
-          {/each}
-        </div>
-
-        {#if selectedMethod}
-          <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-4">
-            <!-- Add repository list display -->
-            <div class="mb-4">
-              <p class="text-sm text-gray-600 dark:text-gray-400">Repositories</p>
-              <ul class="list-disc pl-5 mt-2">
-                {#each repositories as repo}
-                  <li class="text-gray-900 dark:text-gray-100">{repo}</li>
-                {/each}
-              </ul>
-            </div>
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-                <p class="text-lg font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)}</p>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Satoshis: {satoshis.toFixed(0)}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Network</p>
-                <p class="font-medium text-gray-900 dark:text-gray-100">{paymentMethods.find(m => m.id === selectedMethod)?.network}</p>
-              </div>
-            </div>
-
-            {#if isGeneratingInvoice}
-              <div class="flex flex-col items-center justify-center p-8 space-y-4">
-                <div class="w-12 h-12 border-4 border-blue-500 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-gray-700 dark:text-gray-300 font-medium">Generating invoice...</p>
-              </div>
-            {:else if invoice}
-              <div class="flex items-center gap-2 p-2 bg-gray-100 dark:bg-gray-600 rounded-lg animate-fade-in">
-                <code class="text-sm break-all text-gray-900 dark:text-gray-100">{invoice}</code>
-                <button 
-                  class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" 
-                  on:click={() => copyAddress(invoice)}
-                >
-                  <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
-                </button>
+              <!-- Repository list with better spacing -->
+              <div class="space-y-3">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Repositories</p>
+                <ul class="list-disc pl-5 space-y-2">
+                  {#each repositories as repo}
+                    <li class="text-gray-900 dark:text-gray-100">{repo}</li>
+                  {/each}
+                </ul>
               </div>
 
-              <div class="bg-white dark:bg-[var(--card-bg)] p-4 rounded-lg flex items-center justify-center animate-fade-in">
-                <div class="text-gray-400 text-center">
-                  <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mx-auto mb-2" />
-                  <p>Scan QR Code to Pay</p>
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=150x150`} alt="QR Code" />
+              <!-- Payment info with better spacing -->
+              <div class="flex justify-between items-start gap-4">
+                <div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
+                  <p class="text-lg font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Satoshis: {satoshis.toFixed(0)}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Network</p>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{paymentMethods.find(m => m.id === selectedMethod)?.network}</p>
                 </div>
               </div>
 
-              <div class="text-center mt-4 animate-fade-in">
-                <button 
-                  class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" 
-                  on:click={checkPaymentStatus}
-                  disabled={isChecking || !invoice}
-                >
-                  {#if isChecking}
-                    <Icon icon="material-symbols:sync" class="animate-spin" />
-                    Checking...
-                  {:else}
-                    Check Payment Status
-                  {/if}
-                </button>
-                {#if paymentResult}
-                  <p class="mt-2 text-sm font-medium" class:text-green-500={paymentResult.includes('✅')} 
-                     class:text-red-500={paymentResult.includes('❌')}
-                     class:text-yellow-500={paymentResult.includes('⚠️')}
-                     class:text-blue-500={paymentResult.includes('⏳') || paymentResult.includes('🔄')}
-                  >
-                    {paymentResult}
+              <!-- Invoice and QR section with better spacing -->
+              {#if isGeneratingInvoice}
+                <div class="flex flex-col items-center justify-center p-8 space-y-4" in:fade>
+                  <div class="loader">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                  </div>
+                  <p class="text-gray-700 dark:text-gray-300 font-medium animate-pulse">
+                    Generating invoice...
                   </p>
-                {/if}
-              </div>
-            {/if}
-          </div>
-        {/if}
+                </div>
+              {:else if invoice}
+                <div class="space-y-6">
+                  <!-- Invoice copy section with rounded corners -->
+                  <div class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-600 rounded-xl">
+                    <code class="text-sm break-all text-gray-900 dark:text-gray-100">{invoice}</code>
+                    <button 
+                      class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" 
+                      on:click={() => copyAddress(invoice)}
+                    >
+                      <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <!-- QR code section with better centering and rounded corners -->
+                  <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-[var(--card-bg)] rounded-xl">
+                    <Icon icon="material-symbols:qr-code-2" class="w-12 h-12 mb-4 text-gray-400" />
+                    <p class="text-gray-400 mb-4">Scan QR Code to Pay</p>
+                    <!-- Added container with fixed dimensions for QR code -->
+                    <div class="w-[200px] h-[200px] relative flex items-center justify-center">
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=200x200`} 
+                        alt="QR Code"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Payment status section -->
+                  <div class="flex flex-col items-center gap-4">
+                    <button 
+                      class="bg-blue-500 text-white px-6 py-2.5 rounded-xl disabled:opacity-50 hover:bg-blue-600 transition-colors" 
+                      on:click={checkPaymentStatus}
+                      disabled={isChecking || !invoice}
+                    >
+                      {#if isChecking}
+                        <Icon icon="material-symbols:sync" class="animate-spin" />
+                        Checking...
+                      {:else}
+                        Check Payment Status
+                      {/if}
+                    </button>
+                    {#if paymentResult}
+                      <p class="mt-2 text-sm font-medium" class:text-green-500={paymentResult.includes('✅')} 
+                        class:text-red-500={paymentResult.includes('❌')}
+                        class:text-yellow-500={paymentResult.includes('⚠️')}
+                        class:text-blue-500={paymentResult.includes('⏳') || paymentResult.includes('🔄')}
+                      >
+                        {paymentResult}
+                      </p>
+                    {/if}
+                  </div>
+                </div>
+              {/if}
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
   </div>
 {/if}
 
 <style>
-  /* Prevent body scroll when modal is open */
-  :global(body.modal-open) {
-    overflow: hidden;
+  /* Remove global body.modal-open style */
+
+  /* Add scrollbar styling */
+  :global(.dark) .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(75, 85, 99) rgb(31, 41, 55);
+  }
+
+  .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156, 163, 175) rgb(243, 244, 246);
+  }
+
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgb(243, 244, 246);
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgb(156, 163, 175);
+    border-radius: 4px;
+  }
+
+  :global(.dark) .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgb(31, 41, 55);
+  }
+
+  :global(.dark) .overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgb(75, 85, 99);
   }
 
   /* Selected Payment Method */
@@ -344,6 +445,188 @@
 
   :global(.dark) .text-blue-500 {
     color: rgb(59, 130, 246);
+  }
+
+  /* Add smooth transitions */
+  .flex-col {
+    transition: height 0.3s ease-in-out;
+  }
+
+  /* Improved spacing utilities */
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.5rem;
+  }
+
+  .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem;
+  }
+
+  .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem;
+  }
+
+  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.5rem;
+  }
+
+  /* Add smooth transition for QR code */
+  img {
+    transition: transform 0.2s ease;
+  }
+
+  img:hover {
+    transform: scale(1.02);
+  }
+
+  /* Custom loader animation */
+  .loader {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    animation: rotate 2s linear infinite;
+  }
+
+  .circle {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    background: var(--primary, #3b82f6);
+    animation: chase 2s ease-in-out infinite;
+  }
+
+  .circle:nth-child(1) {
+    animation-delay: -0.3s;
+  }
+  .circle:nth-child(2) {
+    animation-delay: -0.6s;
+  }
+  .circle:nth-child(3) {
+    animation-delay: -0.9s;
+  }
+  .circle:nth-child(4) {
+    animation-delay: -1.2s;
+  }
+
+  @keyframes rotate {
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes chase {
+    0% {
+      transform: scale(0.3) rotate(0deg);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1) rotate(180deg);
+      opacity: 0.4;
+    }
+    100% {
+      transform: scale(0.3) rotate(360deg);
+      opacity: 0.8;
+    }
+  }
+
+  /* Smooth transitions */
+  :global(.scale-enter) {
+    animation: scale-in 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :global(.scale-leave) {
+    animation: scale-out 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes scale-in {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-out {
+    from {
+      transform: scale(1);
+      opacity: 1;
+    }
+    to {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+  }
+
+  /* Content transitions */
+  .space-y-6 {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Hover effects */
+  button:not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+  }
+
+  button:not(:disabled):active {
+    transform: translateY(0);
+  }
+
+  .flex-col {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Always show scrollbar to prevent layout shift */
+  .overflow-y-scroll {
+    scrollbar-gutter: stable;
+  }
+
+  /* Improved close button hover effect */
+  button:hover .w-6.h-6 {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+  }
+
+  /* Custom scrollbar styling */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156, 163, 175) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(156, 163, 175);
+    border-radius: 20px;
+  }
+
+  :global(.dark) .custom-scrollbar {
+    scrollbar-color: rgb(75, 85, 99) transparent;
+  }
+
+  :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(75, 85, 99);
+  }
+
+  /* Hover effect for scrollbar */
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(107, 114, 128);
+  }
+
+  :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(107, 114, 128);
+  }
+
+  /* Make inner containers match the rounded corners */
+  .rounded-xl {
+    @apply rounded-2xl;
   }
 </style>
 

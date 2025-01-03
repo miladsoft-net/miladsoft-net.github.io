@@ -108,7 +108,7 @@ document.addEventListener('astro:after-swap', () => {
 }, { once: false });
 </script>
 
-{import.meta.env.PROD && <script is:inline define:vars={{scriptUrl: url('/pagefind/pagefind.js')}}>
+{import.meta.env.PROD && <script define:vars={{ scriptUrl: url('/pagefind/pagefind.js') }}>
 async function loadPagefind() {
     const pagefind = await import(scriptUrl)
     await pagefind.options({

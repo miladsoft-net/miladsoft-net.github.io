@@ -10,6 +10,8 @@ jobs:
   build:
     name: Build and Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
         node-version:
@@ -49,7 +51,25 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      # Create environment files
+      - name: Create env files
+        run: |
+          # Production environment file
+          echo "VITE_GITHUB_TOKEN=${{ secrets.GH_PAT }}" > .env.production
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env.production
+          
+          # Development environment file
+          echo "VITE_GITHUB_TOKEN=${{ secrets.GH_PAT }}" > .env.development
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env.development
+          
+          # Local environment file
+          echo "VITE_GITHUB_TOKEN=${{ secrets.GH_PAT }}" > .env.local
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env.local
+
       - name: Build
+        env:
+          VITE_GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm run build
 
       - name: Redirect 404 to Index for SPA
@@ -62,4 +82,5 @@ jobs:
           publish_dir: ./dist
           cname: miladsoft.net
           enable_jekyll: false
+          force_orphan: true
 
