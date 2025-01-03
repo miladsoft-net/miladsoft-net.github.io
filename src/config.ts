@@ -5,7 +5,7 @@ import type {
   SiteConfig,
 } from './types/config'
 import { LinkPreset } from './types/config'
-import { downloadStore } from './store/downloadStore'
+import { downloadStore } from './store/downloadsStore'
 
 export const siteConfig: SiteConfig = {
   title: 'Miladsoft',

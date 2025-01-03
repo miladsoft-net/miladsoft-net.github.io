@@ -1,17 +1,29 @@
+<script context="module">
+  // Add/remove body class when modal opens/closes
+  function toggleBodyScroll(show: boolean) {
+    if (typeof document !== "undefined") {
+      document.body.classList.toggle("modal-open", show);
+    }
+  }
+</script>
+
 <script lang="ts">
   // Remove SvelteKit import
   // import { goto } from '$app/navigation';
-  import Icon from '@iconify/svelte';
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-  import { portal } from '../utils/portal'; // Updated import
-  import { fade, scale, blur } from 'svelte/transition';
-  import { quintOut } from 'svelte/easing';
-  import { downloadStore } from '../store/downloadStore';
-  import { getCollection, type CollectionEntry } from 'astro:content';
-  import { storeDownloadToken, getCurrentUserId } from '../services/downloadTokenService';
+  import Icon from "@iconify/svelte";
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { portal } from "../utils/portal"; // Updated import
+  import { fade, scale, blur } from "svelte/transition";
+  import { quintOut } from "svelte/easing";
+  import { downloadStore } from "../store/downloadsStore";
+  import { getCollection, type CollectionEntry } from "astro:content";
+  import {
+    storeDownloadToken,
+    getCurrentUserId,
+  } from "../services/downloadTokenService";
 
   const dispatch = createEventDispatcher();
-  
+
   export let show = false;
   export let total: number;
   export let products: Array<{
@@ -20,24 +32,24 @@
     slug: string;
   }>;
 
-  let selectedMethod = '';
+  let selectedMethod = "";
   let bitcoinPrice = 0;
   let satoshis = 0;
-  let invoice = '';
-  let paymentResult = '';
+  let invoice = "";
+  let paymentResult = "";
   let isChecking = false;
-  let verifyUrl = '';
+  let verifyUrl = "";
   let isGeneratingInvoice = false;
 
   const paymentMethods = [
     {
-      id: 'bitcoin',
-      name: 'Bitcoin',
-      description: 'Pay with Bitcoin',
-      icon: 'cryptocurrency:btc',
-      address: 'BITCOIN_WALLET_ADDRESS',
-      network: 'Bitcoin Lightning Network'
-    }
+      id: "bitcoin",
+      name: "Bitcoin",
+      description: "Pay with Bitcoin",
+      icon: "cryptocurrency:btc",
+      address: "BITCOIN_WALLET_ADDRESS",
+      network: "Bitcoin Lightning Network",
+    },
   ];
 
   onMount(async () => {
@@ -51,11 +63,11 @@
 
   async function fetchBitcoinPrice() {
     try {
-      const response = await fetch('https://mempool.space/api/v1/prices');
+      const response = await fetch("https://mempool.space/api/v1/prices");
       const data = await response.json();
       bitcoinPrice = data.USD; // Price in USD
     } catch (error) {
-      console.error('Error fetching Bitcoin price:', error);
+      console.error("Error fetching Bitcoin price:", error);
     }
   }
 
@@ -68,22 +80,24 @@
   // Update the status messages to include emojis for better visibility
   async function generateInvoice() {
     isGeneratingInvoice = true;
-    paymentResult = '';
-    
+    paymentResult = "";
+
     try {
-      const response = await fetch(`https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis*1000}`);
+      const response = await fetch(
+        `https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis * 1000}`
+      );
       const data = await response.json();
-      
+
       if (!data.invoice || !data.invoice.pr) {
-        throw new Error('Invalid response from API');
+        throw new Error("Invalid response from API");
       }
-      
+
       invoice = data.invoice.pr;
       verifyUrl = data.invoice.verify;
       startPaymentCheck();
     } catch (error) {
-      console.error('Error generating invoice:', error);
-      paymentResult = '❌ Error generating invoice. Please try again.';
+      console.error("Error generating invoice:", error);
+      paymentResult = "❌ Error generating invoice. Please try again.";
     } finally {
       isGeneratingInvoice = false;
     }
@@ -91,23 +105,23 @@
 
   function startPaymentCheck() {
     if (!verifyUrl) return;
-    
+
     const checkInterval = setInterval(async () => {
       try {
         const response = await fetch(verifyUrl);
         const data = await response.json();
-        
-        if (data.status === 'OK') {
+
+        if (data.status === "OK") {
           if (data.settled) {
             handleSuccessfulPayment();
             clearInterval(checkInterval);
           } else {
-            paymentResult = '⏳ Waiting for payment...';
+            paymentResult = "⏳ Waiting for payment...";
           }
         }
       } catch (error) {
-        console.error('Error checking payment:', error);
-        paymentResult = '❌ Error checking payment status';
+        console.error("Error checking payment:", error);
+        paymentResult = "❌ Error checking payment status";
       }
     }, 2000); // Check every 2 seconds
 
@@ -123,27 +137,30 @@
 
   async function handleSuccessfulPayment() {
     // Add confetti effect
-    const confetti = document.createElement('script');
-    confetti.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js';
+    const confetti = document.createElement("script");
+    confetti.src =
+      "https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js";
     document.head.appendChild(confetti);
-    
+
     confetti.onload = () => {
       (window as unknown as ExtendedWindow).confetti({
         particleCount: 100,
         spread: 70,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
       });
     };
 
     try {
       // Get all posts from content collection
-      const allPosts = await getCollection('posts');
-      
+      const allPosts = await getCollection("posts");
+
       // Add each product to download store
       for (const product of products) {
         // Find the corresponding post
-        const post = allPosts.find((p: CollectionEntry<'posts'>) => p.slug === product.slug);
-        
+        const post = allPosts.find(
+          (p: CollectionEntry<"posts">) => p.slug === product.slug
+        );
+
         if (!post) continue;
 
         // Generate a secure download token
@@ -151,13 +168,14 @@
 
         // Store the download in downloadStore
         downloadStore.addDownload({
-          productTitle: product.title,
-          date: new Date().toISOString(),
-          price: product.price,
-          downloadUrl: `/api/download/${post.slug}?token=${downloadToken}`, // Secure download URL
-          downloadToken, // Store token for verification
           slug: post.slug,
-          purchased: true
+          title: product.title,
+          downloadUrl: `/api/download/${post.slug}?token=${downloadToken}`,
+          purchaseDate: new Date().toISOString(),
+          price: product.price,
+          token: downloadToken,
+          downloads: 0,
+          maxDownloads: 3,
         });
 
         // Store token in server/database for verification
@@ -167,13 +185,14 @@
           userId: getCurrentUserId(), // Implement this function
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
           downloads: 0, // Initial download count
-          maxDownloads: 3 // Maximum allowed downloads
+          maxDownloads: 3, // Maximum allowed downloads
         });
       }
 
       // Show success animation
-      const successMessage = document.createElement('div');
-      successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
+      const successMessage = document.createElement("div");
+      successMessage.className =
+        "fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50";
       successMessage.innerHTML = `
         <div class="text-center p-8 transform scale-up">
           <div class="success-checkmark">
@@ -197,10 +216,10 @@
       setTimeout(() => {
         show = false;
         document.body.removeChild(successMessage);
-        window.location.href = '/downloads/';
+        window.location.href = "/downloads/";
       }, 3000);
     } catch (error) {
-      console.error('Error processing successful payment:', error);
+      console.error("Error processing successful payment:", error);
       // Show error message to user
     }
   }
@@ -211,7 +230,7 @@
 
   function handleClose() {
     show = false;
-    dispatch('close');
+    dispatch("close");
   }
 
   function handlePaymentSelect(methodId: string) {
@@ -224,121 +243,169 @@
     // Add toast notification here
   }
 
-  $: if (typeof window !== 'undefined') {
+  $: if (typeof window !== "undefined") {
     toggleBodyScroll(show);
   }
 </script>
 
 {#if show}
-  <div 
-    use:portal={'body'} 
+  <div
+    use:portal={"body"}
     class="fixed inset-0 flex items-center justify-center z-50 p-4"
     transition:fade={{ duration: 200 }}
   >
     <!-- Backdrop with blur effect - removed click handler -->
-    <div 
+    <div
       class="absolute inset-0 backdrop-blur-sm bg-black/50"
       transition:blur={{ duration: 200 }}
     ></div>
 
     <!-- Modal container with rounded corners -->
-    <div 
+    <div
       class="relative bg-white dark:bg-[var(--card-bg)] rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
       transition:scale={{
         duration: 300,
         delay: 100,
         opacity: 0,
         start: 0.95,
-        easing: quintOut
+        easing: quintOut,
       }}
     >
       <!-- Header with matching rounded corners -->
-      <div class="sticky top-0 z-10 bg-inherit p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-3xl">
-        <h2 class="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+      <div
+        class="sticky top-0 z-10 bg-inherit p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-3xl"
+      >
+        <h2
+          class="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100"
+        >
           <Icon icon="material-symbols:payments-outline" class="w-6 h-6" />
           Select Payment Method
         </h2>
-        <button 
+        <button
           class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
           on:click={handleClose}
         >
-          <Icon icon="material-symbols:close" class="w-6 h-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" />
+          <Icon
+            icon="material-symbols:close"
+            class="w-6 h-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          />
         </button>
       </div>
 
       <!-- Content with custom scrollbar -->
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div class="p-4 space-y-6"> <!-- Increased space-y for better spacing -->
-          <div class="space-y-4"> <!-- Payment methods section -->
+        <div class="p-4 space-y-6">
+          <!-- Increased space-y for better spacing -->
+          <div class="space-y-4">
+            <!-- Payment methods section -->
             {#each paymentMethods as method}
-              <button 
+              <button
                 class="w-full flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 class:selected={selectedMethod === method.id}
                 on:click={() => handlePaymentSelect(method.id)}
               >
                 <div class="flex-shrink-0">
-                  <Icon icon={method.icon} class="w-6 h-6 text-gray-900 dark:text-gray-100" />
+                  <Icon
+                    icon={method.icon}
+                    class="w-6 h-6 text-gray-900 dark:text-gray-100"
+                  />
                 </div>
-                <div class="flex-1"> 
-                  <span class="font-medium block text-gray-900 dark:text-gray-100">{method.name}</span>
-                  <span class="text-sm text-gray-600 dark:text-gray-400">{method.description}</span>
+                <div class="flex-1">
+                  <span
+                    class="font-medium block text-gray-900 dark:text-gray-100"
+                    >{method.name}</span
+                  >
+                  <span class="text-sm text-gray-600 dark:text-gray-400"
+                    >{method.description}</span
+                  >
                 </div>
-                <Icon icon="material-symbols:chevron-right" class="w-5 h-5 text-gray-400" />
+                <Icon
+                  icon="material-symbols:chevron-right"
+                  class="w-5 h-5 text-gray-400"
+                />
               </button>
             {/each}
           </div>
 
           {#if selectedMethod}
-            <div 
+            <div
               class="space-y-6 bg-gray-50 dark:bg-gray-700 rounded-xl p-6"
               transition:scale={{ duration: 200, opacity: 0.5 }}
             >
               <!-- Payment info with better spacing -->
               <div class="flex justify-between items-start gap-4">
                 <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-                  <p class="text-lg font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)}</p>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Satoshis: {satoshis.toFixed(0)}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Total Amount
+                  </p>
+                  <p class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    ${total.toFixed(2)}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Satoshis: {satoshis.toFixed(0)}
+                  </p>
                 </div>
                 <div class="text-right">
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Network</p>
-                  <p class="font-medium text-gray-900 dark:text-gray-100">{paymentMethods.find(m => m.id === selectedMethod)?.network}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Network
+                  </p>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">
+                    {paymentMethods.find((m) => m.id === selectedMethod)
+                      ?.network}
+                  </p>
                 </div>
               </div>
 
               <!-- Invoice and QR section with better spacing -->
               {#if isGeneratingInvoice}
-                <div class="flex flex-col items-center justify-center p-8 space-y-4" in:fade>
+                <div
+                  class="flex flex-col items-center justify-center p-8 space-y-4"
+                  in:fade
+                >
                   <div class="loader">
                     <div class="circle"></div>
                     <div class="circle"></div>
                     <div class="circle"></div>
                     <div class="circle"></div>
                   </div>
-                  <p class="text-gray-700 dark:text-gray-300 font-medium animate-pulse">
+                  <p
+                    class="text-gray-700 dark:text-gray-300 font-medium animate-pulse"
+                  >
                     Generating invoice...
                   </p>
                 </div>
               {:else if invoice}
                 <div class="space-y-6">
                   <!-- Invoice copy section with rounded corners -->
-                  <div class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-600 rounded-xl">
-                    <code class="text-sm break-all text-gray-900 dark:text-gray-100">{invoice}</code>
-                    <button 
-                      class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" 
+                  <div
+                    class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-600 rounded-xl"
+                  >
+                    <code
+                      class="text-sm break-all text-gray-900 dark:text-gray-100"
+                      >{invoice}</code
+                    >
+                    <button
+                      class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                       on:click={() => copyAddress(invoice)}
                     >
-                      <Icon icon="material-symbols:content-copy" class="w-5 h-5" />
+                      <Icon
+                        icon="material-symbols:content-copy"
+                        class="w-5 h-5"
+                      />
                     </button>
                   </div>
 
                   <!-- QR code section with better centering and rounded corners -->
-                  <div class="flex flex-col items-center justify-center p-6 bg-white dark:bg-[var(--card-bg)] rounded-xl">
+                  <div
+                    class="flex flex-col items-center justify-center p-6 bg-white dark:bg-[var(--card-bg)] rounded-xl"
+                  >
                     <p class="text-gray-400 mb-4">Scan QR Code to Pay</p>
                     <!-- Added container with fixed dimensions for QR code -->
-                    <div class="w-[200px] h-[200px] relative flex items-center justify-center">
-                      <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=200x200`} 
+                    <div
+                      class="w-[200px] h-[200px] relative flex items-center justify-center"
+                    >
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=200x200`}
                         alt="QR Code"
                       />
                     </div>
@@ -347,10 +414,13 @@
                   <!-- Payment status section -->
                   <div class="flex flex-col items-center gap-4">
                     {#if paymentResult}
-                      <p class="mt-2 text-sm font-medium" class:text-green-500={paymentResult.includes('✅')} 
-                        class:text-red-500={paymentResult.includes('❌')}
-                        class:text-yellow-500={paymentResult.includes('⚠️')}
-                        class:text-blue-500={paymentResult.includes('⏳') || paymentResult.includes('🔄')}
+                      <p
+                        class="mt-2 text-sm font-medium"
+                        class:text-green-500={paymentResult.includes("✅")}
+                        class:text-red-500={paymentResult.includes("❌")}
+                        class:text-yellow-500={paymentResult.includes("⚠️")}
+                        class:text-blue-500={paymentResult.includes("⏳") ||
+                          paymentResult.includes("🔄")}
                       >
                         {paymentResult}
                       </p>
@@ -488,7 +558,9 @@
   }
 
   @keyframes rotate {
-    100% { transform: rotate(360deg); }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   @keyframes chase {
@@ -621,7 +693,7 @@
     position: relative;
     border-radius: 50%;
     box-sizing: content-box;
-    border: 4px solid #4CAF50;
+    border: 4px solid #4caf50;
   }
 
   .check-icon::before {
@@ -641,17 +713,18 @@
     animation: rotate-circle 4.25s ease-in;
   }
 
-  .check-icon::before, .check-icon::after {
-    content: '';
+  .check-icon::before,
+  .check-icon::after {
+    content: "";
     height: 100px;
     position: absolute;
-    background: #FFFFFF;
+    background: #ffffff;
     transform: rotate(-45deg);
   }
 
   .icon-line {
     height: 5px;
-    background-color: #4CAF50;
+    background-color: #4caf50;
     display: block;
     border-radius: 2px;
     position: absolute;
@@ -683,7 +756,7 @@
     border-radius: 50%;
     position: absolute;
     box-sizing: content-box;
-    border: 4px solid rgba(76, 175, 80, .5);
+    border: 4px solid rgba(76, 175, 80, 0.5);
   }
 
   .icon-fix {
@@ -694,29 +767,73 @@
     height: 85px;
     position: absolute;
     transform: rotate(-45deg);
-    background-color: #FFFFFF;
+    background-color: #ffffff;
   }
 
   @keyframes rotate-circle {
-    0% { transform: rotate(-45deg); }
-    5% { transform: rotate(-45deg); }
-    12% { transform: rotate(-405deg); }
-    100% { transform: rotate(-405deg); }
+    0% {
+      transform: rotate(-45deg);
+    }
+    5% {
+      transform: rotate(-45deg);
+    }
+    12% {
+      transform: rotate(-405deg);
+    }
+    100% {
+      transform: rotate(-405deg);
+    }
   }
 
   @keyframes icon-line-tip {
-    0% { width: 0; left: 1px; top: 19px; }
-    54% { width: 0; left: 1px; top: 19px; }
-    70% { width: 50px; left: -8px; top: 37px; }
-    84% { width: 17px; left: 21px; top: 48px; }
-    100% { width: 25px; left: 14px; top: 46px; }
+    0% {
+      width: 0;
+      left: 1px;
+      top: 19px;
+    }
+    54% {
+      width: 0;
+      left: 1px;
+      top: 19px;
+    }
+    70% {
+      width: 50px;
+      left: -8px;
+      top: 37px;
+    }
+    84% {
+      width: 17px;
+      left: 21px;
+      top: 48px;
+    }
+    100% {
+      width: 25px;
+      left: 14px;
+      top: 46px;
+    }
   }
 
   @keyframes icon-line-long {
-    0% { width: 0; right: 46px; top: 54px; }
-    65% { width: 0; right: 46px; top: 54px; }
-    84% { width: 55px; right: 0px; top: 35px; }
-    100% { width: 47px; right: 8px; top: 38px; }
+    0% {
+      width: 0;
+      right: 46px;
+      top: 54px;
+    }
+    65% {
+      width: 0;
+      right: 46px;
+      top: 54px;
+    }
+    84% {
+      width: 55px;
+      right: 0px;
+      top: 35px;
+    }
+    100% {
+      width: 47px;
+      right: 8px;
+      top: 38px;
+    }
   }
 
   .scale-up {
@@ -724,17 +841,13 @@
   }
 
   @keyframes scale-up {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-</style>
-
-<script context="module"> 
-  // Add/remove body class when modal opens/closes
-  function toggleBodyScroll(show: boolean) {
-    if (typeof document !== 'undefined') {
-      document.body.classList.toggle('modal-open', show);
+    0% {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
     }
   }
-</script>
-
+</style>

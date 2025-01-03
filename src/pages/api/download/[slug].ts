@@ -8,17 +8,11 @@ export const GET: APIRoute = async ({ params, url }) => {
     const token = url.searchParams.get('token');
     const slug = params.slug;
 
-    if (!token || !slug) {
+    if (!slug) {
       return new Response('Invalid request', { status: 400 });
     }
 
-    // Verify token and purchase status
-    const isValidToken = await verifyDownloadToken(token, slug);
-    if (!isValidToken) {
-      return new Response('Invalid or expired token', { status: 401 });
-    }
-
-    // Get post data with proper typing
+    // Get post data
     const allPosts = await getCollection('posts');
     const post = allPosts.find((p: Post) => p.slug === slug);
 
@@ -26,9 +20,16 @@ export const GET: APIRoute = async ({ params, url }) => {
       return new Response('File not found', { status: 404 });
     }
 
-    // Only allow download if purchased
-    if (!post.data.purchased) {
-      return new Response('Payment required', { status: 402 });
+    // Check if content is free or requires token verification
+    if (!post.data.isFree) {
+      if (!token) {
+        return new Response('Token required', { status: 401 });
+      }
+      
+      const isValidToken = await verifyDownloadToken(token, slug);
+      if (!isValidToken) {
+        return new Response('Invalid or expired token', { status: 401 });
+      }
     }
 
     try {

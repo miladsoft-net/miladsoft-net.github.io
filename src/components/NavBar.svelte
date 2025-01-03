@@ -1,12 +1,5 @@
 <script lang="ts">
-  import { downloadStore } from '../store/downloadStore';
-  import { navBarConfig } from '../config';
-
-  $: showDownloads = $downloadStore.downloads.length > 0;
-  
-  // Add Downloads link to navigation if there are downloads
-  $: links = showDownloads ? 
-    [...navBarConfig.links, { name: 'Downloads', url: '/downloads/' }] : 
+   import { navBarConfig } from '../config';
     navBarConfig.links;
 </script>
 

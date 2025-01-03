@@ -41,7 +41,12 @@ function createCartStore() {
       console.log('Clearing cart');
       localStorage.removeItem(STORAGE_KEY);
       set([]);
-    }
+    },
+    markAsPurchased: () => update(items => {
+      const newItems = items.map(item => ({ ...item, purchased: true }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
+      return newItems;
+    })
   };
 }
 

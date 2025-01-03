@@ -8,7 +8,7 @@ tags: [Demo, Example, Markdown, Miladsoft]
 category: 'Examples'
 draft: false
 isFree: false
-price: 29.99
+price: 0.09
 downloadUrl: "https://example.com/download/markdown-extended"
 ---
 

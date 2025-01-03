@@ -1,13 +1,51 @@
 <script lang="ts">
   import { cart } from '../store/cartStore';
+  import { downloadStore } from '../store/downloadsStore';
+  import type { Download } from '../store/downloadsStore';
+  import { toast } from '../lib/toast';
   import Icon from '@iconify/svelte';
   import PaymentModal from './PaymentModal.svelte';
-  
+
   let showPaymentModal = false;
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
 
   function handleCheckout() {
     showPaymentModal = true;
+  }
+
+  async function handlePaymentSuccess() {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      // Transfer items to downloads
+      $cart.forEach(item => {
+        if (!item.downloadUrl) return;
+        
+        const downloadItem: Download = {
+          slug: item.slug,
+          title: item.title, // This matches the Download interface
+          downloadUrl: item.downloadUrl,
+          purchaseDate: timestamp,
+          price: item.salePrice || item.price,
+          token: crypto.randomUUID(), // Generate unique token
+          downloads: 0,
+          maxDownloads: 3
+        };
+        
+        downloadStore.addDownload(downloadItem);
+      });
+
+      cart.clear();
+      toast.success('Purchase successful! Redirecting to downloads...');
+      
+      // Redirect to downloads page after a short delay
+      setTimeout(() => {
+        window.location.href = '/downloads/';
+      }, 1500);
+    } catch (error) {
+      console.error('Failed to process purchase:', error);
+      toast.error('Failed to process purchase');
+    }
   }
 
   // Prepare products info for PaymentModal without downloadUrl
@@ -64,4 +102,5 @@
   {total}
   {products}
   on:close={() => showPaymentModal = false}
+  on:success={handlePaymentSuccess}
 />
