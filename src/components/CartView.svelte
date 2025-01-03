@@ -17,35 +17,55 @@
   async function handlePaymentSuccess() {
     try {
       const timestamp = new Date().toISOString();
+      let processedItems = 0;
       
-      // Transfer items to downloads
-      $cart.forEach(item => {
-        if (!item.downloadUrl) return;
+      // Process each cart item
+      for (const item of $cart) {
+        if (!item.downloadUrl) continue;
         
-        const downloadItem: Download = {
-          slug: item.slug,
-          title: item.title, // This matches the Download interface
-          downloadUrl: item.downloadUrl,
-          purchaseDate: timestamp,
-          price: item.salePrice || item.price,
-          token: crypto.randomUUID(), // Generate unique token
-          downloads: 0,
-          maxDownloads: 3
-        };
-        
-        downloadStore.addDownload(downloadItem);
-      });
+        try {
+          if (downloadStore.checkExistingDownload(item.slug)) {
+            // Update existing download
+            await downloadStore.updateExistingDownload(item.slug);
+            toast.success(`Extended download period for ${item.title}`);
+          } else {
+            // Add new download
+            const downloadItem: Download = {
+              slug: item.slug,
+              title: item.title,
+              downloadUrl: item.downloadUrl,
+              purchaseDate: timestamp,
+              price: item.salePrice || item.price,
+              token: crypto.randomUUID(),
+              downloads: 0,
+              maxDownloads: 3
+            };
+            
+            downloadStore.addDownload(downloadItem);
+          }
+          processedItems++;
+        } catch (error) {
+          console.error(`Failed to process item ${item.slug}:`, error);
+        }
+      }
 
-      cart.clear();
-      toast.success('Purchase successful! Redirecting to downloads...');
-      
-      // Redirect to downloads page after a short delay
-      setTimeout(() => {
-        window.location.href = '/downloads/';
-      }, 1500);
+      // Only clear cart and redirect if all items were processed successfully
+      if (processedItems === $cart.length) {
+        // Clear the cart immediately
+        cart.clear();
+        
+        toast.success('Purchase successful! Redirecting to downloads...');
+        
+        // Small delay before redirect to ensure cart is cleared and toasts are visible
+        setTimeout(() => {
+          window.location.href = '/downloads/';
+        }, 1500);
+      } else {
+        throw new Error('Some items failed to process');
+      }
     } catch (error) {
       console.error('Failed to process purchase:', error);
-      toast.error('Failed to process purchase');
+      toast.error('Failed to process purchase. Please try again.');
     }
   }
 

@@ -86,14 +86,17 @@
 
 <div class="max-w-4xl mx-auto p-4">
   {#if uniqueDownloads.length === 0}
-    <div class="text-center py-8 bg-white/30 dark:bg-gray-800/30 rounded-lg">
-      <Icon icon="material-symbols:download" 
-            class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500"/>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">No downloads available</p>
-    </div>
+     <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
+        <Icon icon="material-symbols:download" 
+              class="text-gray-400 dark:text-gray-500 w-20 h-20 animate-bounce" />
+        <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
+            No downloads available
+        </p>
+      </div>
+
   {:else}
-    <div class="space-y-4">
-      {#each uniqueDownloads as download (getUniqueKey(download))}
+  <div class="flex flex-col gap-4" in:fade>
+    {#each uniqueDownloads as download (getUniqueKey(download))}
         <div class="bg-white/90 dark:bg-gray-800/90 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700"
              in:fade={{ duration: 200 }}>
           <div class="p-5">

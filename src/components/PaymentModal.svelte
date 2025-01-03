@@ -12,15 +12,18 @@
   // import { goto } from '$app/navigation';
   import Icon from "@iconify/svelte";
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
+
+ 
   import { portal } from "../utils/portal"; // Updated import
   import { fade, scale, blur } from "svelte/transition";
   import { quintOut } from "svelte/easing";
-  import { downloadStore } from "../store/downloadsStore";
+  import { downloadStore, type Download } from "../store/downloadsStore";
   import { getCollection, type CollectionEntry } from "astro:content";
   import {
     storeDownloadToken,
     getCurrentUserId,
   } from "../services/downloadTokenService";
+  import { cart } from '../store/cartStore';
 
   const dispatch = createEventDispatcher();
 
@@ -113,7 +116,7 @@
 
         if (data.status === "OK") {
           if (data.settled) {
-            handleSuccessfulPayment();
+            await handleSuccessfulPayment();
             clearInterval(checkInterval);
           } else {
             paymentResult = "⏳ Waiting for payment...";
@@ -136,92 +139,73 @@
   }
 
   async function handleSuccessfulPayment() {
-    // Add confetti effect
-    const confetti = document.createElement("script");
-    confetti.src =
-      "https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js";
-    document.head.appendChild(confetti);
-
-    confetti.onload = () => {
-      (window as unknown as ExtendedWindow).confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    };
-
     try {
-      // Get all posts from content collection
-      const allPosts = await getCollection("posts");
-
-      // Add each product to download store
+      // Payment is successful at this point
+      // No need to check data status since this is called after verification
+      // Process each cart item
       for (const product of products) {
-        // Find the corresponding post
-        const post = allPosts.find(
-          (p: CollectionEntry<"posts">) => p.slug === product.slug
-        );
-
-        if (!post) continue;
-
-        // Generate a secure download token
-        const downloadToken = generateSecureToken();
-
-        // Store the download in downloadStore
-        downloadStore.addDownload({
-          slug: post.slug,
-          title: product.title,
-          downloadUrl: `/api/download/${post.slug}?token=${downloadToken}`,
-          purchaseDate: new Date().toISOString(),
-          price: product.price,
-          token: downloadToken,
-          downloads: 0,
-          maxDownloads: 3,
-        });
-
-        // Store token in server/database for verification
-        await storeDownloadToken({
-          token: downloadToken,
-          slug: post.slug,
-          userId: getCurrentUserId(), // Implement this function
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-          downloads: 0, // Initial download count
-          maxDownloads: 3, // Maximum allowed downloads
-        });
+        if (downloadStore.checkExistingDownload(product.slug)) {
+          // Update existing download with extended expiry and more downloads
+          await downloadStore.updateExistingDownload(product.slug, 3);
+          console.log('Extended download for:', product.slug);
+        } else {
+          // Add new download
+          const downloadItem: Download = {
+            slug: product.slug,
+            title: product.title,
+            downloadUrl: `/api/download/${product.slug}`,
+            purchaseDate: new Date().toISOString(),
+            price: product.price,
+            token: crypto.randomUUID(),
+            downloads: 0,
+            maxDownloads: 3
+          };
+          downloadStore.addDownload(downloadItem);
+          console.log('Added new download:', product.slug);
+        }
       }
 
-      // Show success animation
-      const successMessage = document.createElement("div");
-      successMessage.className =
-        "fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50";
-      successMessage.innerHTML = `
-        <div class="text-center p-8 transform scale-up">
-          <div class="success-checkmark">
-            <div class="check-icon">
-              <span class="icon-line line-tip"></span>
-              <span class="icon-line line-long"></span>
-              <div class="icon-circle"></div>
-              <div class="icon-fix"></div>
-            </div>
-          </div>
-          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Payment Successful!</h2>
-          <p class="text-lg text-gray-600 dark:text-gray-400 mb-4">Thank you for your purchase</p>
-          <div class="animate-bounce">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(successMessage);
+      // Clear cart
+      cart.clear();
+      console.log('Cart cleared');
 
+      // Show success animation and redirect
+      showSuccessAnimation();
+      
       // Close modal and redirect after animation
       setTimeout(() => {
         show = false;
-        document.body.removeChild(successMessage);
-        window.location.href = "/downloads/";
+        window.location.href = '/downloads/';
       }, 3000);
+
+      dispatch('success');
     } catch (error) {
-      console.error("Error processing successful payment:", error);
-      // Show error message to user
+      console.error('Payment processing error:', error);
+      paymentResult = "❌ Failed to process payment";
     }
+  }
+
+  function showSuccessAnimation() {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
+    successMessage.innerHTML = `
+      <div class="text-center p-8 transform scale-up">
+        <div class="success-checkmark">
+          <div class="check-icon">
+            <span class="icon-line line-tip"></span>
+            <span class="icon-line line-long"></span>
+            <div class="icon-circle"></div>
+            <div class="icon-fix"></div>
+          </div>
+        </div>
+        <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Payment Successful!</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-400">Your downloads have been updated</p>
+        <div class="animate-bounce mt-4">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(successMessage);
   }
 
   function generateSecureToken() {
