@@ -6,7 +6,7 @@ category: Examples
 draft: true
 isFree: false
 price: 29.99
-downloadUrl: "https://example.com/download/draft"
+downloadUrl: https://miladsoft.net/products/file.zip
 ---
 
 # This Article is a Draft

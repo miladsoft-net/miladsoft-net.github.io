@@ -8,7 +8,7 @@ draft: false
 isFree: false
 price: 5
 salePrice: 0.05
-downloadUrl: "https://miladsoft.net/products/file.zip"
+downloadUrl: https://miladsoft.net/products/file.zip
 ---
 
 # An h1 header
