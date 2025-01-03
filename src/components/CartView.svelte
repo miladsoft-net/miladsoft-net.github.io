@@ -5,6 +5,7 @@
   import { toast } from '../lib/toast';
   import Icon from '@iconify/svelte';
   import PaymentModal from './PaymentModal.svelte';
+  import { fade, fly } from 'svelte/transition';
 
   let showPaymentModal = false;
   $: total = $cart.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
@@ -56,42 +57,56 @@
   }));
 </script>
 
-<div class="min-h-[300px]">
+<div class="min-h-[300px] bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
   {#if $cart.length === 0}
-    <div class="flex flex-col items-center justify-center h-[300px]">
-      <Icon icon="material-symbols:shopping-cart-outline" class="text-black/30 dark:text-white/30 w-16 h-16" />
-      <p class="mt-4 text-black/50 dark:text-white/50">Your cart is empty</p>
+    <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
+      <Icon icon="material-symbols:shopping-cart-outline" 
+            class="text-gray-400 dark:text-gray-500 w-20 h-20 animate-bounce" />
+      <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
+        Your cart is empty
+      </p>
     </div>
   {:else}
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4" in:fade>
       {#each $cart as item}
-        <div class="flex justify-between items-center p-4">
+        <div class="flex justify-between items-center p-4 bg-white dark:bg-gray-700/50 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+             in:fly="{{ y: 20, duration: 300 }}">
           <div>
-            <a href={`/posts/${item.slug}/`} class="text-black dark:text-white font-medium hover:underline">
+            <a href={`/posts/${item.slug}/`} 
+               class="text-gray-800 dark:text-gray-100 font-medium hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors">
               {item.title}
             </a>
-            <div class="flex gap-2 items-center">
+            <div class="flex gap-2 items-center mt-1">
               {#if item.salePrice}
-                <span class="text-black/50 dark:text-white/50 line-through">${item.price}</span>
-                <span class="text-[var(--primary)]">${item.salePrice}</span>
+                <span class="text-gray-400 dark:text-gray-500 line-through text-sm">${item.price}</span>
+                <span class="text-[var(--primary)] font-semibold">${item.salePrice}</span>
               {:else}
-                <span class="text-black/50 dark:text-white/50">${item.price}</span>
+                <span class="text-gray-600 dark:text-gray-300">${item.price}</span>
               {/if}
             </div>
           </div>
-          <button class="text-black/30 dark:text-white/30 hover:text-red-500 dark:hover:text-red-400 transition-colors" on:click={() => cart.removeItem(item.slug)}>
-            <Icon icon="material-symbols:delete-outline" class="w-8 h-8"/>
+          <button class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                  on:click={() => cart.removeItem(item.slug)}>
+            <Icon icon="material-symbols:delete-outline" class="w-6 h-6"/>
           </button>
         </div>
       {/each}
       
-      <div class="flex justify-between items-center p-4 mt-4 font-semibold">
-        <span class="text-black dark:text-white">Total:</span>
-        <span class="text-blue-500">${total.toFixed(2)}</span>
+      <div class="flex justify-between items-center p-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+        <span class="text-gray-800 dark:text-gray-200 font-semibold text-lg">Total:</span>
+        <span class="text-[var(--primary)] font-bold text-xl">${total.toFixed(2)}</span>
       </div>
       
-      <button class="w-full py-4 mt-4 bg-[var(--primary)] text-white rounded-lg font-semibold transition-all hover:opacity-90 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-black/30" disabled={$cart.length === 0} on:click={handleCheckout}>
-        Proceed to Checkout
+      <button class="w-full py-4 mt-4 bg-[var(--primary)] text-white rounded-xl font-semibold 
+                     transition-all duration-300 hover:opacity-90 hover:-translate-y-1 hover:shadow-lg
+                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+                     disabled:bg-gray-400 dark:disabled:bg-gray-700"
+              disabled={$cart.length === 0}
+              on:click={handleCheckout}>
+        <div class="flex items-center justify-center gap-2">
+          <Icon icon="material-symbols:shopping-cart-checkout" class="w-6 h-6" />
+          <span>Proceed to Checkout</span>
+        </div>
       </button>
     </div>
   {/if}

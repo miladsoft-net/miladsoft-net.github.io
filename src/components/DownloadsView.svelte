@@ -5,6 +5,7 @@
   import { getCollection } from 'astro:content';
   import type { Post } from '../content/config';
   import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
 
   // Get downloads directly from the store subscription
   $: downloads = $downloadStore;
@@ -83,40 +84,73 @@
   }
 </script>
 
-<div class="max-w-4xl mx-auto p-4">
+<div class="max-w-6xl mx-auto p-4">
   {#if uniqueDownloads.length === 0}
-    <div class="text-center py-8">
-      <Icon icon="material-symbols:download" class="w-16 h-16 mx-auto text-gray-400"/>
-      <p class="mt-4 text-gray-600">No downloads available</p>
+    <div class="text-center py-12 animate-fadeIn bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl">
+      <Icon icon="material-symbols:download" 
+            class="w-24 h-24 mx-auto text-[var(--primary)] opacity-40 animate-bounce"/>
+      <p class="mt-6 text-gray-600 dark:text-gray-300 text-xl font-medium">
+        No downloads available
+      </p>
     </div>
   {:else}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="space-y-4">
       {#each uniqueDownloads as download (getUniqueKey(download))}
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-          <div class="p-6">
-            <h3 class="font-medium text-lg text-gray-900 dark:text-white mb-3">
-              {download.title}
-              <!-- Debug info -->
-              <span class="text-xs text-gray-500">({download.slug})</span>
-            </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-              Purchased: {new Date(download.purchaseDate).toLocaleDateString()}
-            </p>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Downloads remaining: {download.maxDownloads - download.downloads}
-            </p>
+        <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl 
+                    overflow-hidden transform transition-all duration-300 hover:scale-[1.01] 
+                    border border-gray-100/20 dark:border-gray-700/20"
+             in:fade={{ duration: 300, delay: 200 }}>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4">
+            <div class="flex-1">
+              <h3 class="font-medium text-xl text-gray-800 dark:text-gray-100 mb-2">
+                {download.title}
+              </h3>
+              <div class="space-y-3">
+                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <Icon icon="mdi:calendar" class="w-4 h-4 text-[var(--primary)]" />
+                  {new Date(download.purchaseDate).toLocaleDateString()}
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <Icon icon="mdi:download-circle" class="w-4 h-4 text-[var(--primary)]" />
+                  <span>{download.maxDownloads - download.downloads} downloads remaining</span>
+                </p>
+              </div>
+            </div>
+            
             <button
-              class="mt-4 inline-flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 
+                     bg-[var(--primary)] text-white 
+                     rounded-xl font-semibold transition-all duration-300 
+                     hover:shadow-lg hover:-translate-y-1
+                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               on:click={() => handleDownload(download)}
               disabled={download.downloads >= download.maxDownloads}
               data-slug={download.slug}
             >
-              <Icon icon="material-symbols:download" class="w-5 h-5" />
-              <span>Download ({findPost(download.slug) ? 'Found' : 'Not Found'})</span>
+              <Icon icon="material-symbols:download" 
+                    class="w-5 h-5 transition-transform group-hover:-translate-y-1" />
+              <span>Download</span>
             </button>
+          </div>
+          
+          <div class="h-2 bg-gray-100 dark:bg-gray-700">
+            <div class="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-darker)] 
+                        transition-all duration-500 ease-out"
+                 style="width: {(download.downloads / download.maxDownloads) * 100}%" />
           </div>
         </div>
       {/each}
     </div>
   {/if}
 </div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out;
+  }
+</style>
