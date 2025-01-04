@@ -87,7 +87,7 @@
         icon="material-symbols:shopping-cart-outline"
         class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
       />
-      <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
+      <p class="mt-6 text-gray-500 dark:text-white/70 text-lg font-medium">
         Your cart is empty
       </p>
     </div>
@@ -108,21 +108,21 @@
             <div class="flex gap-2 items-center mt-1">
               {#if item.salePrice}
                 <span
-                  class="text-gray-400 dark:text-gray-500 line-through text-sm"
+                  class="text-white/70 dark:text-gray-500 line-through text-sm"
                   >${item.price}</span
                 >
                 <span class="text-[var(--primary)] font-semibold"
                   >${item.salePrice}</span
                 >
               {:else}
-                <span class="text-gray-600 dark:text-gray-300"
+                <span class="text-white/20 dark:text-gray-300"
                   >${item.price}</span
                 >
               {/if}
             </div>
           </div>
           <button
-            class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+            class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-white/70 hover:text-red-500 dark:hover:text-red-400 transition-all"
             on:click={() => cart.removeItem(item.slug)}
           >
             <Icon icon="material-symbols:delete-outline" class="w-6 h-6" />

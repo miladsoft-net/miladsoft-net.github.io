@@ -168,7 +168,6 @@
         <span>Export</span>
       </button>
     </div>
-    
   </div>
 
   {#if uniqueDownloads.length === 0}
@@ -177,7 +176,7 @@
         icon={ICONS.download}
         class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
       />
-      <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
+      <p class="mt-6 text-gray-500 dark:text-white/70 text-lg font-medium">
         No downloads available
       </p>
     </div>
