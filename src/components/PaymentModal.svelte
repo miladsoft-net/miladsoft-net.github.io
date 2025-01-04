@@ -27,6 +27,16 @@
 
   const dispatch = createEventDispatcher();
 
+  const paymentMethods = [
+    {
+      id: "lightning",
+      name: "Bitcoin Lightning",
+      description: "Fast & low fees",
+      icon: "cryptocurrency:btc",
+      network: "Lightning Network"
+    }
+  ];
+
   export let show = false;
   export let total: number;
   export let products: Array<{
@@ -44,25 +54,19 @@
   let verifyUrl = "";
   let isGeneratingInvoice = false;
 
-  const paymentMethods = [
-    {
-      id: "bitcoin",
-      name: "Bitcoin",
-      description: "Pay with Bitcoin",
-      icon: "cryptocurrency:btc",
-      address: "BITCOIN_WALLET_ADDRESS",
-      network: "Bitcoin Lightning Network",
-    },
-  ];
+  // Watch for changes in show and total
+  $: {
+    if (show) {
+      fetchBitcoinPrice();
+    }
+  }
 
-  onMount(async () => {
-    await fetchBitcoinPrice();
-    calculateSatoshis();
-    setInterval(async () => {
-      await fetchBitcoinPrice();
+  // Watch for changes in bitcoinPrice and total
+  $: {
+    if (bitcoinPrice > 0 && total > 0) {
       calculateSatoshis();
-    }, 60000); // Update every minute
-  });
+    }
+  }
 
   async function fetchBitcoinPrice() {
     try {
@@ -263,6 +267,23 @@
   $: if (typeof window !== "undefined") {
     toggleBodyScroll(show);
   }
+
+  // Replace existing onMount with this
+  onMount(async () => {
+    if (show) {
+      await fetchBitcoinPrice();
+    }
+    // Update price every minute if modal is open
+    const interval = setInterval(() => {
+      if (show) {
+        fetchBitcoinPrice();
+      }
+    }, 60000);
+
+    onDestroy(() => {
+      clearInterval(interval);
+    });
+  });
 </script>
 
 {#if show}
