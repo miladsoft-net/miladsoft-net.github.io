@@ -33,8 +33,7 @@
     try {
       const allPosts = await getCollection("posts");
       mountedPosts = allPosts;
-      console.log("Loaded posts:", mountedPosts.length);
-    } catch (error) {
+     } catch (error) {
       console.error("Failed to fetch posts:", error);
     } finally {
       isLoading = false;
@@ -61,8 +60,7 @@
     try {
       const allPosts = await getCollection("posts");
       posts = allPosts;
-      console.log("Loaded posts:", posts.length); // Debug log
-    } catch (error) {
+     } catch (error) {
       console.error("Failed to fetch posts:", error);
     }
   });

@@ -10,9 +10,13 @@
 
   let isClient = false;
   let showPaymentModal = false;
+  let crypto: Crypto;
 
   onMount(() => {
     isClient = true;
+    if (typeof window !== 'undefined') {
+      crypto = window.crypto;
+    }
   });
 
   $: total = $cart.reduce(
@@ -26,11 +30,11 @@
 
   // Generate UUID safely
   function generateToken() {
-    if (typeof window === 'undefined') return '';
+    if (!isClient || !crypto) return '';
     
     try {
       // Bind the method to window.crypto to avoid "Illegal invocation"
-      const randomUUID = window.crypto.randomUUID.bind(window.crypto);
+      const randomUUID = crypto.randomUUID.bind(crypto);
       return randomUUID();
     } catch (e) {
       // Fallback for browsers that don't support crypto.randomUUID
@@ -39,7 +43,7 @@
   }
 
   async function handlePaymentSuccess() {
-    if (typeof window === 'undefined') return;
+    if (!isClient) return;
     
     try {
       const timestamp = new Date().toISOString();
@@ -49,8 +53,12 @@
       for (const item of $cart) {
         if (!item.downloadUrl) continue;
 
+        const token = generateToken();
+        if (!token) {
+          throw new Error('Failed to generate token');
+        }
+
         try {
-          const token = generateToken();
           if (downloadStore.checkExistingDownload(item.slug)) {
             await downloadStore.updateExistingDownload(item.slug);
             toast.success(`Extended download period for ${item.title}`);

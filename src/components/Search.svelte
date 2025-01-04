@@ -15,6 +15,7 @@ let result: SearchResult[] = []
 let isClient = false
 let searchPanel: HTMLElement | null = null
 let isMounted = false
+let searchInstance: any = null;
 
 interface SearchResult {
   url: string;
@@ -35,47 +36,54 @@ const fakeResult = [
   },
 ]
 
-onMount(() => {
+onMount(async () => {
   isClient = true
   isMounted = true
   searchPanel = document.getElementById('search-panel')
+  
+  // Initialize pagefind only on client-side
+  if (import.meta.env.PROD && typeof window !== 'undefined') {
+    try {
+      searchInstance = window.pagefind;
+    } catch (error) {
+      console.error('Failed to initialize search:', error);
+    }
+  }
 })
 
 async function search(keyword: string, isDesktop: boolean) {
-  if (!isClient || !isMounted) return
+  if (!isClient || !isMounted || !searchPanel) return;
 
-  // Handle panel visibility
-  if (searchPanel) {
+  try {
     if (!keyword && isDesktop) {
-      searchPanel.classList.add('float-panel-closed')
-      return
+      searchPanel.classList.add('float-panel-closed');
+      return;
     }
 
-    let searchResults = []
-    try {
-      if (import.meta.env.PROD && typeof pagefind !== 'undefined') {
-        const ret = await pagefind.search(keyword)
-        for (const item of ret.results) {
-          searchResults.push(await item.data())
-        }
-      } else {
-        searchResults = fakeResult
+    let searchResults = [];
+    
+    if (import.meta.env.PROD && searchInstance) {
+      const ret = await searchInstance.search(keyword);
+      for (const item of ret.results) {
+        searchResults.push(await item.data());
       }
-
-      if (!searchResults.length && isDesktop) {
-        searchPanel.classList.add('float-panel-closed')
-        return
-      }
-
-      if (isDesktop) {
-        searchPanel.classList.remove('float-panel-closed')
-      }
-      
-      result = searchResults
-    } catch (error) {
-      console.error('Search error:', error)
-      result = []
+    } else {
+      searchResults = fakeResult;
     }
+
+    if (!searchResults.length && isDesktop) {
+      searchPanel.classList.add('float-panel-closed');
+      return;
+    }
+
+    if (isDesktop) {
+      searchPanel.classList.remove('float-panel-closed');
+    }
+    
+    result = searchResults;
+  } catch (error) {
+    console.error('Search error:', error);
+    result = [];
   }
 }
 
