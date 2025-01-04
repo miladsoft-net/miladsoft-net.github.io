@@ -8,76 +8,86 @@ import { url } from '@utils/url-utils.ts'
 import { i18n } from '@i18n/translation'
 import I18nKey from '@i18n/i18nKey'
 import Icon from '@iconify/svelte'
+
 let keywordDesktop = ''
 let keywordMobile = ''
+let result: SearchResult[] = []
+let isClient = false
+let searchPanel: HTMLElement | null = null
+let isMounted = false
+
 interface SearchResult {
   url: string;
   meta: { title: string };
   excerpt: string;
 }
-let result: SearchResult[] = []
+
 const fakeResult = [
   {
     url: url('/'),
-    meta: {
-      title: 'This Is a Fake Search Result',
-    },
-    excerpt:
-      'Because the search cannot work in the <mark>dev</mark> environment.',
+    meta: { title: 'This Is a Fake Search Result' },
+    excerpt: 'Because the search cannot work in the <mark>dev</mark> environment.',
   },
   {
     url: url('/'),
-    meta: {
-      title: 'If You Want to Test the Search',
-    },
+    meta: { title: 'If You Want to Test the Search' },
     excerpt: 'Try running <mark>npm build && npm preview</mark> instead.',
   },
 ]
 
-let isClient = false;
-let searchPanel: HTMLElement | null = null;
-
 onMount(() => {
-  isClient = true;
-  searchPanel = document.getElementById('search-panel');
-});
+  isClient = true
+  isMounted = true
+  searchPanel = document.getElementById('search-panel')
+})
 
-let search = async (keyword: string, isDesktop: boolean) => {
-  if (!isClient) return;
-  
-  if (!keyword && isDesktop) {
-    searchPanel?.classList.add('float-panel-closed');
-    return;
-  }
+async function search(keyword: string, isDesktop: boolean) {
+  if (!isClient || !isMounted) return
 
-  let arr = [];
-  if (import.meta.env.PROD) {
-    const ret = await pagefind.search(keyword);
-    for (const item of ret.results) {
-      arr.push(await item.data());
+  // Handle panel visibility
+  if (searchPanel) {
+    if (!keyword && isDesktop) {
+      searchPanel.classList.add('float-panel-closed')
+      return
     }
-  } else {
-    arr = fakeResult;
-  }
 
-  if (!arr.length && isDesktop) {
-    searchPanel?.classList.add('float-panel-closed');
-    return;
-  }
+    let searchResults = []
+    try {
+      if (import.meta.env.PROD && typeof pagefind !== 'undefined') {
+        const ret = await pagefind.search(keyword)
+        for (const item of ret.results) {
+          searchResults.push(await item.data())
+        }
+      } else {
+        searchResults = fakeResult
+      }
 
-  if (isDesktop) {
-    searchPanel?.classList.remove('float-panel-closed');
+      if (!searchResults.length && isDesktop) {
+        searchPanel.classList.add('float-panel-closed')
+        return
+      }
+
+      if (isDesktop) {
+        searchPanel.classList.remove('float-panel-closed')
+      }
+      
+      result = searchResults
+    } catch (error) {
+      console.error('Search error:', error)
+      result = []
+    }
   }
-  result = arr;
 }
 
-const togglePanel = () => {
-  if (!isClient) return;
-  searchPanel?.classList.toggle('float-panel-closed');
+function togglePanel() {
+  if (!isClient || !searchPanel) return
+  searchPanel.classList.toggle('float-panel-closed')
 }
 
-$: search(keywordDesktop, true)
-$: search(keywordMobile, false)
+$: if (isMounted) {
+  search(keywordDesktop, true)
+  search(keywordMobile, false)
+}
 </script>
 
 <!-- search bar for desktop view -->

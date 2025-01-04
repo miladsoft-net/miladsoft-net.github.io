@@ -21,5 +21,8 @@
   "frontMatter.dashboard.openOnStart": false,
   "[svelte]": {
     "editor.defaultFormatter": "svelte.svelte-vscode"
-  }
+  },
+  "cSpell.words": [
+    "pagefind"
+  ]
 }

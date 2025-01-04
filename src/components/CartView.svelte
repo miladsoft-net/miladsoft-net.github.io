@@ -26,17 +26,20 @@
 
   // Generate UUID safely
   function generateToken() {
-    if (!isClient) return '';
+    if (typeof window === 'undefined') return '';
     
     try {
-      return window.crypto.randomUUID();
+      // Bind the method to window.crypto to avoid "Illegal invocation"
+      const randomUUID = window.crypto.randomUUID.bind(window.crypto);
+      return randomUUID();
     } catch (e) {
+      // Fallback for browsers that don't support crypto.randomUUID
       return Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
   }
 
   async function handlePaymentSuccess() {
-    if (!isClient) return;
+    if (typeof window === 'undefined') return;
     
     try {
       const timestamp = new Date().toISOString();
@@ -47,6 +50,7 @@
         if (!item.downloadUrl) continue;
 
         try {
+          const token = generateToken();
           if (downloadStore.checkExistingDownload(item.slug)) {
             await downloadStore.updateExistingDownload(item.slug);
             toast.success(`Extended download period for ${item.title}`);
@@ -57,7 +61,7 @@
               downloadUrl: item.downloadUrl,
               purchaseDate: timestamp,
               price: item.salePrice || item.price,
-              token: generateToken(),
+              token,
               downloads: 0,
               maxDownloads: 3,
             };
