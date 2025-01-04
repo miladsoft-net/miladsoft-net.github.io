@@ -85,79 +85,62 @@
     <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
       <Icon
         icon="material-symbols:shopping-cart-outline"
-        class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
+        class="text-gray-400 dark:text-gray-500 w-20 h-20 animate-bounce"
       />
-      <p class="mt-6 text-gray-500 dark:text-white/70 text-lg font-medium">
+      <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
         Your cart is empty
       </p>
     </div>
   {:else}
-    <div class="flex flex-col gap-4" in:fade>
-      {#each $cart as item}
-        <div
-          class="flex justify-between items-center p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
-          in:fly={{ y: 20, duration: 300 }}
-        >
-          <div>
-            <a
-              href={`/posts/${item.slug}/`}
-              class="text-gray-800 dark:text-gray-100 font-medium hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors"
-            >
-              {item.title}
-            </a>
-            <div class="flex gap-2 items-center mt-1">
-              {#if item.salePrice}
-                <span
-                  class="text-white/70 dark:text-gray-500 line-through text-sm"
-                  >${item.price}</span
-                >
-                <span class="text-[var(--primary)] font-semibold"
-                  >${item.salePrice}</span
-                >
-              {:else}
-                <span class="text-white/20 dark:text-gray-300"
-                  >${item.price}</span
-                >
-              {/if}
-            </div>
-          </div>
-          <button
-            class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-white/70 hover:text-red-500 dark:hover:text-red-400 transition-all"
-            on:click={() => cart.removeItem(item.slug)}
-          >
-            <Icon icon="material-symbols:delete-outline" class="w-6 h-6" />
-          </button>
-        </div>
-      {/each}
-
+  <div class="flex flex-col gap-4" in:fade>
+    {#each $cart as item}
       <div
-        class="flex justify-between items-center p-4 mt-4 border-t border-gray-200 dark:border-gray-700"
+        class="flex justify-between items-center p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+        in:fly={{ y: 20, duration: 300 }}
       >
-        <span class="text-gray-800 dark:text-gray-200 font-semibold text-lg"
-          >Total:</span
-        >
-        <span class="text-[var(--primary)] font-bold text-xl"
-          >${total.toFixed(2)}</span
-        >
-      </div>
-
-      <button
-        class="w-full py-4 mt-4 bg-[var(--primary)] text-white rounded-xl font-semibold
-                     transition-all duration-300 hover:opacity-90 hover:-translate-y-1 hover:shadow-lg
-                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
-                     disabled:bg-gray-400 dark:disabled:bg-gray-700"
-        disabled={$cart.length === 0}
-        on:click={handleCheckout}
-      >
-        <div class="flex items-center justify-center gap-2">
-          <Icon
-            icon="material-symbols:shopping-cart-checkout"
-            class="w-6 h-6"
-          />
-          <span>Proceed to Checkout</span>
+        <div>
+          <a
+            href={`/posts/${item.slug}/`}
+            class="text-gray-800 dark:text-gray-100 font-medium hover:text-[var(--primary)] transition-colors"
+          >
+            {item.title}
+          </a>
+          <div class="flex gap-2 items-center mt-1">
+            {#if item.salePrice}
+              <span class="text-gray-700 dark:text-gray-300 line-through">${item.price}</span>
+              <span class="text-[var(--primary)] font-semibold">${item.salePrice}</span>
+            {:else}
+              <span class="text-gray-600 dark:text-gray-300">${item.price}</span>
+            {/if}
+          </div>
         </div>
-      </button>
+        <button
+          class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+          on:click={() => cart.removeItem(item.slug)}
+        >
+          <Icon icon="material-symbols:delete-outline" class="w-6 h-6 sm:w-6 sm:h-6" />
+        </button>
+      </div>
+    {/each}
+  
+    <div class="flex justify-between items-center p-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+      <span class="text-gray-800 dark:text-gray-200 font-semibold text-lg">Total:</span>
+      <span class="text-[var(--primary)] font-bold text-xl">${total.toFixed(2)}</span>
     </div>
+  
+    <button
+      class="w-full py-4 mt-4 bg-[var(--primary)] text-white rounded-xl font-semibold
+             transition-all duration-300 ease-in-out hover:opacity-90 hover:-translate-y-1 hover:shadow-lg
+             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+             disabled:bg-gray-400 dark:disabled:bg-gray-700 flex items-center justify-center gap-2"
+      disabled={$cart.length === 0}
+      on:click={handleCheckout}
+    >
+      <Icon icon="material-symbols:shopping-cart-checkout" class="w-6 h-6 sm:w-6 sm:h-6" />
+      <span>Proceed to Checkout</span>
+    </button>
+  </div>
+  
   {/if}
 </div>
 
