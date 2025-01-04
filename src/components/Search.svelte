@@ -16,7 +16,14 @@
 
   let keywordDesktop = ''
   let keywordMobile = ''
-  let result = []
+  interface SearchResult {
+    url: string;
+    meta: {
+      title: string;
+    };
+    excerpt: string;
+  }
+  let result: SearchResult[] = []
   const fakeResult = [
     {
       url: url('/'),
