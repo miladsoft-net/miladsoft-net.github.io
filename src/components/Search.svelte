@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-declare const pagefind: any;
+// Remove the global declaration and handle it inside the component
 </script>
 
 <script lang="ts">
@@ -15,7 +15,7 @@ let result: SearchResult[] = []
 let isClient = false
 let searchPanel: HTMLElement | null = null
 let isMounted = false
-let searchInstance: any = null;
+let searchInstance: any = null
 
 interface SearchResult {
   url: string;
@@ -37,53 +37,64 @@ const fakeResult = [
 ]
 
 onMount(async () => {
-  isClient = true
-  isMounted = true
-  searchPanel = document.getElementById('search-panel')
-  
-  // Initialize pagefind only on client-side
-  if (import.meta.env.PROD && typeof window !== 'undefined') {
-    try {
-      searchInstance = window.pagefind;
-    } catch (error) {
-      console.error('Failed to initialize search:', error);
+  try {
+    isClient = typeof window !== 'undefined'
+    isMounted = true
+    searchPanel = document.getElementById('search-panel')
+    
+    // Wait for next tick to ensure DOM is ready
+    await new Promise(resolve => setTimeout(resolve, 0))
+    
+    if (import.meta.env.PROD && typeof window !== 'undefined') {
+      if ('pagefind' in window) {
+        searchInstance = window.pagefind
+      }
     }
+  } catch (error) {
+    console.error('Search initialization error:', error)
   }
 })
 
 async function search(keyword: string, isDesktop: boolean) {
-  if (!isClient || !isMounted || !searchPanel) return;
+  if (!isClient || !isMounted || !searchPanel) return
 
   try {
     if (!keyword && isDesktop) {
-      searchPanel.classList.add('float-panel-closed');
-      return;
+      searchPanel.classList.add('float-panel-closed')
+      return
     }
 
-    let searchResults = [];
+    let searchResults = []
     
     if (import.meta.env.PROD && searchInstance) {
-      const ret = await searchInstance.search(keyword);
-      for (const item of ret.results) {
-        searchResults.push(await item.data());
+      try {
+        const ret = await searchInstance.search(keyword)
+        if (ret?.results) {
+          searchResults = await Promise.all(
+            ret.results.map((item: { data: () => Promise<SearchResult> }) => item.data())
+          )
+        }
+      } catch (e) {
+        console.error('Search execution error:', e)
+        searchResults = []
       }
     } else {
-      searchResults = fakeResult;
+      searchResults = fakeResult
     }
 
     if (!searchResults.length && isDesktop) {
-      searchPanel.classList.add('float-panel-closed');
-      return;
+      searchPanel.classList.add('float-panel-closed')
+      return
     }
 
     if (isDesktop) {
-      searchPanel.classList.remove('float-panel-closed');
+      searchPanel.classList.remove('float-panel-closed')
     }
     
-    result = searchResults;
+    result = searchResults
   } catch (error) {
-    console.error('Search error:', error);
-    result = [];
+    console.error('Search error:', error)
+    result = []
   }
 }
 
@@ -128,12 +139,12 @@ top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
         <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
         <input placeholder="Search" bind:value={keywordMobile}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
-               focus:w-60 text-black/50 dark:text-white/50"
+               focus:w-60 text-black/50 dark:text:white/50"
         >
     </div>
 
     <!-- search results -->
-    {#each result as item}
+    {#each result as item (item.url)}
         <a href={item.url}
            class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
        rounded-xl text-lg px-3 py-2 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]">
