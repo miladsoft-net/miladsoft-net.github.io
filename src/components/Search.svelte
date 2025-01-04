@@ -34,43 +34,46 @@ const fakeResult = [
   },
 ]
 
-let search = (keyword: string, isDesktop: boolean) => {}
+let isClient = false;
+let searchPanel: HTMLElement | null = null;
 
 onMount(() => {
-  search = async (keyword: string, isDesktop: boolean) => {
-    let panel = document.getElementById('search-panel')
-    if (!panel) return
+  isClient = true;
+  searchPanel = document.getElementById('search-panel');
+});
 
-    if (!keyword && isDesktop) {
-      panel.classList.add('float-panel-closed')
-      return
-    }
-
-    let arr = []
-    if (import.meta.env.PROD) {
-      const ret = await pagefind.search(keyword)
-      for (const item of ret.results) {
-        arr.push(await item.data())
-      }
-    } else {
-      arr = fakeResult
-    }
-
-    if (!arr.length && isDesktop) {
-      panel.classList.add('float-panel-closed')
-      return
-    }
-
-    if (isDesktop) {
-      panel.classList.remove('float-panel-closed')
-    }
-    result = arr
+let search = async (keyword: string, isDesktop: boolean) => {
+  if (!isClient) return;
+  
+  if (!keyword && isDesktop) {
+    searchPanel?.classList.add('float-panel-closed');
+    return;
   }
-})
+
+  let arr = [];
+  if (import.meta.env.PROD) {
+    const ret = await pagefind.search(keyword);
+    for (const item of ret.results) {
+      arr.push(await item.data());
+    }
+  } else {
+    arr = fakeResult;
+  }
+
+  if (!arr.length && isDesktop) {
+    searchPanel?.classList.add('float-panel-closed');
+    return;
+  }
+
+  if (isDesktop) {
+    searchPanel?.classList.remove('float-panel-closed');
+  }
+  result = arr;
+}
 
 const togglePanel = () => {
-  let panel = document.getElementById('search-panel')
-  panel?.classList.toggle('float-panel-closed')
+  if (!isClient) return;
+  searchPanel?.classList.toggle('float-panel-closed');
 }
 
 $: search(keywordDesktop, true)
