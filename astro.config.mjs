@@ -126,7 +126,8 @@ export default defineConfig({
           ) {
             return;
           }
-          warn(warning);
+          // Suppress all warnings
+          // warn(warning);
         },
       },
     },
