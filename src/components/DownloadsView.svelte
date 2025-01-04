@@ -23,6 +23,14 @@
   $: downloads = $downloadStore;
   let posts: Post[] = [];
 
+  let isLoading = true;
+  let isClient = false;
+
+  onMount(() => {
+    isClient = true;
+    isLoading = false;
+  });
+
   // Create a unique key for each download
   function getUniqueKey(download: Download) {
     return `${download.slug}-${download.purchaseDate}-${download.token}`;
@@ -170,124 +178,130 @@
     </div>
   </div>
 
-  {#if uniqueDownloads.length === 0}
-    <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
-      <Icon
-        icon={ICONS.download}
-        class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
-      />
-      <p class="mt-6 text-gray-500 dark:text-white/70 text-lg font-medium">
-        No downloads available
-      </p>
+  {#if isLoading}
+    <div class="flex justify-center items-center min-h-[200px]">
+      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--primary)]"></div>
     </div>
-  {:else}
-    <div class="flex flex-col gap-4" in:fade>
-      {#each uniqueDownloads as download (getUniqueKey(download))}
-        <div
-          class="flex flex-col p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
-          in:fly={{ y: 20, duration: 300 }}
-        >
-          <div class="p-5">
-            <!-- Title with Link -->
-            <a
-              href={`/posts/${download.slug}/`}
-              class="inline-block text-lg font-medium text-gray-800 dark:text-gray-100 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors mb-3"
-            >
-              {download.title}
-            </a>
+  {:else if isClient}
+    {#if $downloadStore.length === 0}
+      <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
+        <Icon
+          icon={ICONS.download}
+          class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
+        />
+        <p class="mt-6 text-gray-500 dark:text-white/70 text-lg font-medium">
+          No downloads available
+        </p>
+      </div>
+    {:else}
+      <div class="flex flex-col gap-4" in:fade>
+        {#each uniqueDownloads as download (getUniqueKey(download))}
+          <div
+            class="flex flex-col p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
+            in:fly={{ y: 20, duration: 300 }}
+          >
+            <div class="p-5">
+              <!-- Title with Link -->
+              <a
+                href={`/posts/${download.slug}/`}
+                class="inline-block text-lg font-medium text-gray-800 dark:text-gray-100 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors mb-3"
+              >
+                {download.title}
+              </a>
 
-            <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"
-            >
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full">
-                <div class="space-y-1">
-                  <div
-                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
-                  >
-                    <Icon icon={ICONS.calendar} class="w-5 h-5 " />
-                    <span class="font-medium">Purchased</span>
+              <div
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"
+              >
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full">
+                  <div class="space-y-1">
+                    <div
+                      class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                    >
+                      <Icon icon={ICONS.calendar} class="w-5 h-5 " />
+                      <span class="font-medium">Purchased</span>
+                    </div>
+                    <div
+                      class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {new Date(download.purchaseDate).toLocaleDateString()}
+                    </div>
                   </div>
-                  <div
-                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {new Date(download.purchaseDate).toLocaleDateString()}
+
+                  <div class="space-y-1">
+                    <div
+                      class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                    >
+                      <Icon icon={ICONS.price} class="w-5 h-5" />
+                      <span class="font-medium">Price</span>
+                    </div>
+                    <div
+                      class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      ${download.price}
+                    </div>
+                  </div>
+
+                  <div class="space-y-1">
+                    <div
+                      class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                    >
+                      <Icon icon={ICONS.downloadCount} class="w-5 h-5" />
+                      <span class="font-medium">Downloads</span>
+                    </div>
+                    <div
+                      class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {download.downloads} / {download.maxDownloads}
+                    </div>
+                  </div>
+
+                  <div class="space-y-1">
+                    <div
+                      class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                    >
+                      <Icon icon={ICONS.expire} class="w-5 h-5" />
+                      <span class="font-medium">Expires</span>
+                    </div>
+                    <div
+                      class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {new Date(
+                        new Date(download.purchaseDate).getTime() +
+                          30 * 24 * 60 * 60 * 1000
+                      ).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
 
-                <div class="space-y-1">
-                  <div
-                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                <div class="w-full sm:w-auto flex justify-center sm:justify-end">
+                  <button
+                    class="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg
+                             transition-all duration-300 ease-in-out shadow-lg
+                             hover:bg-opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed
+                             w-full sm:w-auto"
+                    on:click={() => handleDownload(download)}
+                    disabled={download.downloads >= download.maxDownloads}
+                    data-slug={download.slug}
                   >
-                    <Icon icon={ICONS.price} class="w-5 h-5" />
-                    <span class="font-medium">Price</span>
-                  </div>
-                  <div
-                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    ${download.price}
-                  </div>
+                    <Icon icon={ICONS.download} class="w-6 h-6 sm:w-6 sm:h-6" />
+                    <span>Download</span>
+                  </button>
                 </div>
-
-                <div class="space-y-1">
-                  <div
-                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
-                  >
-                    <Icon icon={ICONS.downloadCount} class="w-5 h-5" />
-                    <span class="font-medium">Downloads</span>
-                  </div>
-                  <div
-                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {download.downloads} / {download.maxDownloads}
-                  </div>
-                </div>
-
-                <div class="space-y-1">
-                  <div
-                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
-                  >
-                    <Icon icon={ICONS.expire} class="w-5 h-5" />
-                    <span class="font-medium">Expires</span>
-                  </div>
-                  <div
-                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {new Date(
-                      new Date(download.purchaseDate).getTime() +
-                        30 * 24 * 60 * 60 * 1000
-                    ).toLocaleDateString()}
-                  </div>
-                </div>
-              </div>
-
-              <div class="w-full sm:w-auto flex justify-center sm:justify-end">
-                <button
-                  class="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg
-                           transition-all duration-300 ease-in-out shadow-lg
-                           hover:bg-opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed
-                           w-full sm:w-auto"
-                  on:click={() => handleDownload(download)}
-                  disabled={download.downloads >= download.maxDownloads}
-                  data-slug={download.slug}
-                >
-                  <Icon icon={ICONS.download} class="w-6 h-6 sm:w-6 sm:h-6" />
-                  <span>Download</span>
-                </button>
               </div>
             </div>
-          </div>
 
-          <!-- Progress Bar -->
-          <div class="h-1 bg-gray-100 dark:bg-white/10 rounded-b-xl">
-            <div
-              class="h-full bg-[var(--primary)] transition-all duration-300"
-              style="width: {(download.downloads / download.maxDownloads) *
-                100}%"
-            ></div>
+            <!-- Progress Bar -->
+            <div class="h-1 bg-gray-100 dark:bg-white/10 rounded-b-xl">
+              <div
+                class="h-full bg-[var(--primary)] transition-all duration-300"
+                style="width: {(download.downloads / download.maxDownloads) *
+                  100}%"
+              ></div>
+            </div>
           </div>
-        </div>
-      {/each}
-    </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </div>
 

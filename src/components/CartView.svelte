@@ -28,18 +28,25 @@
 
         try {
           if (downloadStore.checkExistingDownload(item.slug)) {
-            // Update existing download
             await downloadStore.updateExistingDownload(item.slug);
             toast.success(`Extended download period for ${item.title}`);
           } else {
-            // Add new download
+            // Generate UUID safely
+            let token;
+            try {
+              token = window.crypto.randomUUID();
+            } catch (e) {
+              // Fallback for browsers that don't support crypto.randomUUID
+              token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+            }
+
             const downloadItem: Download = {
               slug: item.slug,
               title: item.title,
               downloadUrl: item.downloadUrl,
               purchaseDate: timestamp,
               price: item.salePrice || item.price,
-              token: crypto.randomUUID(),
+              token,
               downloads: 0,
               maxDownloads: 3,
             };
