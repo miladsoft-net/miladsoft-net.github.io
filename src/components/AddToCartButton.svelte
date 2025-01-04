@@ -40,6 +40,6 @@
 
 <style>
   .in-cart {
-    @apply bg-black/[0.2] ;
+    @apply bg-black/[0.3] ;
   }
 </style>

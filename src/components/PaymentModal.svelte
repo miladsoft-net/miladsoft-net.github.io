@@ -313,7 +313,7 @@
 
           {#if selectedMethod}
             <div
-              class="space-y-6 bg-gray-50 dark:bg-gray-700 rounded-xl p-6"
+              class="space-y-6 bg-gray-50 dark:bg-white/10 rounded-xl p-6"
               transition:scale={{ duration: 200, opacity: 0.5 }}
             >
               <!-- Payment info with better spacing -->
@@ -362,7 +362,7 @@
                 <div class="space-y-6">
                   <!-- Invoice copy section with rounded corners -->
                   <div
-                    class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-600 rounded-xl"
+                    class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-[var(--card-bg)] rounded-xl"
                   >
                     <code
                       class="text-sm break-all text-gray-900 dark:text-gray-100"
@@ -403,7 +403,7 @@
                         class:text-green-500={paymentResult.includes("✅")}
                         class:text-red-500={paymentResult.includes("❌")}
                         class:text-yellow-500={paymentResult.includes("⚠️")}
-                        class:text-blue-500={paymentResult.includes("⏳") ||
+                        class:text-[var(--primary)]={paymentResult.includes("⏳") ||
                           paymentResult.includes("🔄")}
                       >
                         {paymentResult}

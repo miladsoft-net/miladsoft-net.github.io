@@ -112,20 +112,20 @@
     <div class="flex flex-col gap-4" in:fade>
       {#each uniqueDownloads as download (getUniqueKey(download))}
         <div
-          class="flex flex-col p-4 bg-[var(--page-bg)] rounded-xl shadow-sm
-    hover:shadow-lg transition-all duration-300"
+          class="flex flex-col p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
+    
           in:fly={{ y: 20, duration: 300 }}
         >
           <div class="p-5">
             <!-- Title with Link -->
             <a
               href={`/posts/${download.slug}/`}
-              class="inline-block text-lg font-medium text-gray-800 dark:text-gray-100 font-medium hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors mb-3"
+              class="inline-block text-lg font-medium text-gray-800 dark:text-gray-100 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors mb-3"
             >
               {download.title}
             </a>
 
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full">
                   <div class="space-y-1">
                     <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
