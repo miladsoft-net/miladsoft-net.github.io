@@ -36,33 +36,35 @@
   ]
   
   let search = async (keyword: string, isDesktop: boolean) => {
-    let panel = document.getElementById('search-panel')
-    if (!panel) return
+    if (typeof document !== 'undefined') {
+      let panel = document.getElementById('search-panel')
+      if (!panel) return
 
-    if (!keyword && isDesktop) {
-      panel.classList.add('float-panel-closed')
-      return
-    }
-
-    let arr = []
-    if (import.meta.env.PROD) {
-      const ret = await pagefind.search(keyword)
-      for (const item of ret.results) {
-        arr.push(await item.data())
+      if (!keyword && isDesktop) {
+        panel.classList.add('float-panel-closed')
+        return
       }
-    } else {
-      arr = fakeResult
-    }
 
-    if (!arr.length && isDesktop) {
-      panel.classList.add('float-panel-closed')
-      return
-    }
+      let arr = []
+      if (import.meta.env.PROD) {
+        const ret = await pagefind.search(keyword)
+        for (const item of ret.results) {
+          arr.push(await item.data())
+        }
+      } else {
+        arr = fakeResult
+      }
 
-    if (isDesktop) {
-      panel.classList.remove('float-panel-closed')
+      if (!arr.length && isDesktop) {
+        panel.classList.add('float-panel-closed')
+        return
+      }
+
+      if (isDesktop) {
+        panel.classList.remove('float-panel-closed')
+      }
+      result = arr
     }
-    result = arr
   }
   
   onMount(() => {
@@ -71,8 +73,10 @@
   })
   
   const togglePanel = () => {
-    let panel = document.getElementById('search-panel')
-    panel?.classList.toggle('float-panel-closed')
+    if (typeof document !== 'undefined') {
+      let panel = document.getElementById('search-panel')
+      panel?.classList.toggle('float-panel-closed')
+    }
   }
   
   $: search(keywordDesktop, true)
