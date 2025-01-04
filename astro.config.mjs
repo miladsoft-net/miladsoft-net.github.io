@@ -119,13 +119,6 @@ export default defineConfig({
     build: {
       rollupOptions: {
         onwarn(warning, warn) {
-          // temporarily suppress this warning
-          if (
-            warning.message.includes("is dynamically imported by") &&
-            warning.message.includes("but also statically imported by")
-          ) {
-            return;
-          }
           // Suppress all warnings
           // warn(warning);
         },
