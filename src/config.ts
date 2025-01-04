@@ -61,8 +61,8 @@ export const navBarConfig: NavBarConfig = {
 
 export const profileConfig: ProfileConfig = {
   avatar: 'assets/images/logo.svg',  // Relative to the /src directory. Relative to the /public directory if it starts with '/'
-  name: 'Miladsoft',
-  bio: 'Miladsoft dolor sit amet, consectetur adipiscing elit.',
+  name: 'Miladsoft.Net',
+  bio: 'Miladsoft provides coding tutorials and source code, with Bitcoin payments and no signup.',
   links: [
     {
       name: 'Twitter',
@@ -72,9 +72,9 @@ export const profileConfig: ProfileConfig = {
       url: 'https://twitter.com',
     },
     {
-      name: 'Steam',
-      icon: 'fa6-brands:steam',
-      url: 'https://store.steampowered.com',
+      name: 'Nostr',
+      icon: 'mdi:lightning-bolt',  // از آیکن رعد و برق از مجموعه Material Design Icons استفاده می‌کنیم
+      url: '#',
     },
     {
       name: 'GitHub',
