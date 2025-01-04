@@ -50,6 +50,9 @@ importers:
       '@swup/astro':
         specifier: ^1.4.1
         version: 1.4.1(@types/babel__core@7.20.5)
+      '@swup/head-plugin':
+        specifier: ^2.3.1
+        version: 2.3.1(swup@4.8.1)
       '@tailwindcss/typography':
         specifier: ^0.5.15
         version: 0.5.15(tailwindcss@3.4.14)
@@ -1581,8 +1584,8 @@ packages:
     peerDependencies:
       swup: ^4.6.0
 
-  '@swup/head-plugin@2.3.0':
-    resolution: {integrity: sha512-QWsv1w8s3KYjkB5WQ6OofVAJrbuRZcXbCGGZJT8qjzELgaeJ+HpdSB6oZ0FhW2VbAW2r0ywexGsynGrcf8mfwg==}
+  '@swup/head-plugin@2.3.1':
+    resolution: {integrity: sha512-kdv60fO9c0/3+K40f7Fj/uV34nSuuPeCsld83J5uVVFizOmoovA737C5M1Iqac5Spf2GLU7q+mhN6AbohSIBjA==}
     peerDependencies:
       swup: ^4.6.0
 
@@ -6466,7 +6469,7 @@ snapshots:
       '@swup/debug-plugin': 4.1.0(swup@4.8.1)
       '@swup/fade-theme': 2.0.1(swup@4.8.1)
       '@swup/forms-plugin': 3.6.0(swup@4.8.1)
-      '@swup/head-plugin': 2.3.0(swup@4.8.1)
+      '@swup/head-plugin': 2.3.1(swup@4.8.1)
       '@swup/overlay-theme': 2.0.1(swup@4.8.1)
       '@swup/parallel-plugin': 0.4.0(@types/babel__core@7.20.5)(swup@4.8.1)
       '@swup/preload-plugin': 3.2.10(swup@4.8.1)
@@ -6504,7 +6507,7 @@ snapshots:
       '@swup/plugin': 4.0.0
       swup: 4.8.1
 
-  '@swup/head-plugin@2.3.0(swup@4.8.1)':
+  '@swup/head-plugin@2.3.1(swup@4.8.1)':
     dependencies:
       '@swup/plugin': 4.0.0
       swup: 4.8.1
