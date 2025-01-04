@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+declare const pagefind: any;
+</script>
+
 <script lang="ts">
 import { onMount } from 'svelte'
 import { url } from '@utils/url-utils.ts'
@@ -6,7 +10,12 @@ import I18nKey from '@i18n/i18nKey'
 import Icon from '@iconify/svelte'
 let keywordDesktop = ''
 let keywordMobile = ''
-let result = []
+interface SearchResult {
+  url: string;
+  meta: { title: string };
+  excerpt: string;
+}
+let result: SearchResult[] = []
 const fakeResult = [
   {
     url: url('/'),
