@@ -1,0 +1,39 @@
+---
+import WidgetLayout from './WidgetLayout.astro'
+
+interface Props {
+    class?: string;
+    style?: string;
+}
+
+const { class: className, style } = Astro.props;
+---
+
+<WidgetLayout name="Bitcoin Price" id="bitcoin-price-widget" class={className} style={style}>
+    <div class="flex items-center justify-between">
+        <span id="btc-price" class="text-xl font-bold text-neutral-700 dark:text-neutral-100">$0.00</span>
+        <span id="btc-change" class="text-sm">0.00%</span>
+    </div>
+</WidgetLayout>
+
+<script>
+    const priceElement = document.getElementById('btc-price');
+    const changeElement = document.getElementById('btc-change');
+
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const price = parseFloat(data.c).toFixed(2);
+        const priceChange = parseFloat(data.P).toFixed(2);
+
+        if (priceElement) {
+            priceElement.textContent = `$${price}`;
+        }
+        
+        if (changeElement) {
+            changeElement.textContent = `${priceChange}%`;
+            changeElement.className = 'text-sm ' + (Number(priceChange) >= 0 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400');
+        }
+    };
+</script>
