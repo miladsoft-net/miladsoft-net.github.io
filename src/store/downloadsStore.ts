@@ -1,4 +1,5 @@
 import { writable, get } from 'svelte/store';
+import CryptoJS from 'crypto-js';
 
 export interface Download {
   slug: string;
@@ -11,38 +12,58 @@ export interface Download {
   maxDownloads: number;
 }
 
-const STORAGE_KEY = 'downloads';
+const STORAGE_KEY = 'miladsoft_downloads';
+const ENCRYPTION_KEY = 'miladsoft-secure-storage-2024';
+
+function encryptData(data: Download[]): string {
+  return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
+}
+
+function decryptData(encryptedData: string): Download[] {
+  try {
+    const decrypted = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY).toString(CryptoJS.enc.Utf8);
+    return JSON.parse(decrypted);
+  } catch (error) {
+    console.error('Failed to decrypt downloads data');
+    return [];
+  }
+}
 
 function createDownloadStore() {
+  // Load and decrypt initial data
   const savedDownloads = typeof window !== 'undefined'
-    ? JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+    ? (() => {
+        const encrypted = localStorage.getItem(STORAGE_KEY);
+        return encrypted ? decryptData(encrypted) : [];
+      })()
     : [];
 
   const { subscribe, set, update } = writable<Download[]>(savedDownloads);
+
+  function saveToStorage(downloads: Download[]) {
+    if (typeof window !== 'undefined') {
+      const encrypted = encryptData(downloads);
+      localStorage.setItem(STORAGE_KEY, encrypted);
+    }
+  }
 
   return {
     subscribe,
     addDownload: (download: Download) => update(downloads => {
       const newDownloads = [...downloads, download];
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newDownloads));
-      }
+      saveToStorage(newDownloads);
       return newDownloads;
     }),
     removeDownload: (slug: string) => update(downloads => {
       const newDownloads = downloads.filter(d => d.slug !== slug);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newDownloads));
-      }
+      saveToStorage(newDownloads);
       return newDownloads;
     }),
     incrementDownloadCount: (slug: string) => update(downloads => {
       const newDownloads = downloads.map(d =>
         d.slug === slug ? { ...d, downloads: (d.downloads || 0) + 1 } : d
       );
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newDownloads));
-      }
+      saveToStorage(newDownloads);
       return newDownloads;
     }),
     clear: () => {
@@ -75,10 +96,7 @@ function createDownloadStore() {
             return download;
           });
 
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(newDownloads));
-          }
-          
+          saveToStorage(newDownloads);
           resolve(true);
           return newDownloads;
         });

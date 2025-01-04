@@ -85,7 +85,7 @@
     <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
       <Icon
         icon="material-symbols:shopping-cart-outline"
-        class="text-gray-400 dark:text-gray-500 w-20 h-20 animate-bounce"
+        class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
       />
       <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
         Your cart is empty

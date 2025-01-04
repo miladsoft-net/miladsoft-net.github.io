@@ -2,7 +2,7 @@
 title: Simple Guides for Miladsoft
 published: 2024-04-01
 description: "How to use this blog template."
-image: "./cover.jpeg"
+image: "./banner.png"
 tags: ["Miladsoft", "Blogging", "Customization"]
 category: Guides
 draft: false

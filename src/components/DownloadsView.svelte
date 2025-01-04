@@ -6,6 +6,18 @@
   import type { Post } from "../content/config";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
+  import { saveExportFile, handleImportFile } from "../utils/downloadManager";
+
+  const ICONS = {
+    download: "fluent:arrow-download-24-filled",
+    calendar: "fluent:calendar-28-filled",
+    price: "fluent:money-24-filled",
+    downloadCount: "fluent:arrow-download-28-filled",
+    expire: "fluent:timer-24-filled",
+    export: "fluent:share-24-filled",
+    import: "fluent:arrow-import-24-filled",
+    downloadTitle: "fluent:box-24-filled",
+  };
 
   // Get downloads directly from the store subscription
   $: downloads = $downloadStore;
@@ -66,14 +78,12 @@
         throw new Error("Download URL not found");
       }
 
-      // Use direct download URL with token
-      const downloadUrl = `${post.data.downloadUrl}?token=${download.token}`;
-      console.log("Download URL:", downloadUrl); // Debug log
+      // Use encrypted download URL
+      const encryptedUrl = `${post.data.downloadUrl}?token=${download.token}&fmt=miladsoft`;
 
-      // Create download link
       const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = post.data.title || download.title;
+      a.href = encryptedUrl;
+      a.download = `${post.data.title || download.title}.miladsoft`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -89,6 +99,34 @@
     }
   }
 
+  async function exportDownloads() {
+    try {
+      await saveExportFile(uniqueDownloads);
+      toast.success("Downloads exported successfully");
+    } catch (error) {
+      toast.error("Failed to export downloads");
+    }
+  }
+
+  async function importDownloads(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    try {
+      const importedDownloads = await handleImportFile(input.files[0]);
+      importedDownloads.forEach((download) => {
+        if (!downloadStore.checkExistingDownload(download.slug)) {
+          downloadStore.addDownload(download);
+        }
+      });
+      toast.success("Downloads imported successfully");
+    } catch (error) {
+      toast.error("Failed to import downloads");
+    } finally {
+      input.value = ""; // Reset input
+    }
+  }
+
   function fly(
     arg0: HTMLDivElement,
     arg1: { y: number; duration: number }
@@ -98,11 +136,46 @@
 </script>
 
 <div class="max-w-4xl mx-auto">
+  <!-- Header with title and actions -->
+  <div class="flex items-center justify-between mb-8 pb-4">
+    <div class="flex items-center gap-2">
+      <!-- <Icon icon={ICONS.downloadTitle} class="w-6 h-6 text-[var(--primary)]" /> -->
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        My Downloads
+      </h1>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <input
+        type="file"
+        accept=".miladsoft"
+        class="hidden"
+        id="import-file"
+        on:change={importDownloads}
+      />
+      <label
+        for="import-file"
+        class="flex items-center gap-2 px-3 py-1.5 text-sm btn-plain scale-animation rounded-lg h-11 font-bold cursor-pointer"
+      >
+        <Icon icon={ICONS.import} class="w-4 h-4" />
+        <span>Import</span>
+      </label>
+      <button
+        class="flex items-center gap-2 px-3 py-1.5 text-sm btn-plain scale-animation rounded-lg h-11 font-bold cursor-pointer"
+        on:click={exportDownloads}
+      >
+        <Icon icon={ICONS.export} class="w-4 h-4" />
+        <span>Export</span>
+      </button>
+    </div>
+    
+  </div>
+
   {#if uniqueDownloads.length === 0}
     <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
       <Icon
-        icon="material-symbols:download"
-        class="text-gray-400 dark:text-gray-500 w-20 h-20 animate-bounce"
+        icon={ICONS.download}
+        class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
       />
       <p class="mt-6 text-gray-500 dark:text-gray-400 text-lg font-medium">
         No downloads available
@@ -113,7 +186,6 @@
       {#each uniqueDownloads as download (getUniqueKey(download))}
         <div
           class="flex flex-col p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
-    
           in:fly={{ y: 20, duration: 300 }}
         >
           <div class="p-5">
@@ -125,68 +197,89 @@
               {download.title}
             </a>
 
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                      <span class="font-medium">Purchased</span>
-                    </div>
-                    <div class="text-base font-semibold text-gray-700 dark:text-gray-300">
-                      {new Date(download.purchaseDate).toLocaleDateString()}
-                    </div>
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"
+            >
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full">
+                <div class="space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                  >
+                    <Icon icon={ICONS.calendar} class="w-5 h-5 " />
+                    <span class="font-medium">Purchased</span>
                   </div>
-              
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                      <span class="font-medium">Price</span>
-                    </div>
-                    <div class="text-base font-semibold text-gray-700 dark:text-gray-300">
-                      ${download.price}
-                    </div>
-                  </div>
-              
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                      <span class="font-medium">Downloads</span>
-                    </div>
-                    <div class="text-base font-semibold text-gray-700 dark:text-gray-300">
-                      {download.downloads} / {download.maxDownloads}
-                    </div>
-                  </div>
-              
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                      <span class="font-medium">Expires</span>
-                    </div>
-                    <div class="text-base font-semibold text-gray-700 dark:text-gray-300">
-                      {new Date(
-                        new Date(download.purchaseDate).getTime() + 30 * 24 * 60 * 60 * 1000
-                      ).toLocaleDateString()}
-                    </div>
+                  <div
+                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {new Date(download.purchaseDate).toLocaleDateString()}
                   </div>
                 </div>
-              
-                <div class="w-full sm:w-auto flex justify-center sm:justify-end">
-                  <button
-                    class="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg
-                           transition-all duration-300 ease-in-out shadow-lg 
-                           hover:bg-opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed
-                           w-full sm:w-auto"
-                    on:click={() => handleDownload(download)}
-                    disabled={download.downloads >= download.maxDownloads}
-                    data-slug={download.slug}
+
+                <div class="space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
                   >
-                    <Icon icon="material-symbols:download" class="w-6 h-6 sm:w-6 sm:h-6" />
-                    <span>Download</span>
-                  </button>
+                    <Icon icon={ICONS.price} class="w-5 h-5" />
+                    <span class="font-medium">Price</span>
+                  </div>
+                  <div
+                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    ${download.price}
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                  >
+                    <Icon icon={ICONS.downloadCount} class="w-5 h-5" />
+                    <span class="font-medium">Downloads</span>
+                  </div>
+                  <div
+                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {download.downloads} / {download.maxDownloads}
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
+                  >
+                    <Icon icon={ICONS.expire} class="w-5 h-5" />
+                    <span class="font-medium">Expires</span>
+                  </div>
+                  <div
+                    class="text-base font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {new Date(
+                      new Date(download.purchaseDate).getTime() +
+                        30 * 24 * 60 * 60 * 1000
+                    ).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
-              
-              
+
+              <div class="w-full sm:w-auto flex justify-center sm:justify-end">
+                <button
+                  class="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg
+                           transition-all duration-300 ease-in-out shadow-lg
+                           hover:bg-opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed
+                           w-full sm:w-auto"
+                  on:click={() => handleDownload(download)}
+                  disabled={download.downloads >= download.maxDownloads}
+                  data-slug={download.slug}
+                >
+                  <Icon icon={ICONS.download} class="w-6 h-6 sm:w-6 sm:h-6" />
+                  <span>Download</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Progress Bar -->
-          <div class="h-1 bg-gray-100 dark:bg-gray-700">
+          <div class="h-1 bg-gray-100 dark:bg-white/10 rounded-b-xl">
             <div
               class="h-full bg-[var(--primary)] transition-all duration-300"
               style="width: {(download.downloads / download.maxDownloads) *
