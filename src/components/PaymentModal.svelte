@@ -53,6 +53,8 @@
   let isChecking = false;
   let verifyUrl = "";
   let isGeneratingInvoice = false;
+  let previousSatoshis = 0;
+  let autoRefreshInterval: NodeJS.Timer;
 
   // Watch for changes in show and total
   $: {
@@ -64,7 +66,17 @@
   // Watch for changes in bitcoinPrice and total
   $: {
     if (bitcoinPrice > 0 && total > 0) {
-      calculateSatoshis();
+      const newSatoshis = Math.round((total / bitcoinPrice) * 100000000);
+      // Only regenerate invoice if satoshis amount has changed
+      if (newSatoshis !== previousSatoshis && selectedMethod) {
+        previousSatoshis = newSatoshis;
+        satoshis = newSatoshis;
+        if (invoice) {
+          generateInvoice(); // Regenerate invoice with new amount
+        }
+      } else {
+        satoshis = newSatoshis;
+      }
     }
   }
 
@@ -72,15 +84,14 @@
     try {
       const response = await fetch("https://mempool.space/api/v1/prices");
       const data = await response.json();
-      bitcoinPrice = data.USD; // Price in USD
+      const newPrice = data.USD;
+      
+      if (newPrice !== bitcoinPrice) {
+        bitcoinPrice = newPrice;
+        // calculateSatoshis will be triggered by the reactive statement
+      }
     } catch (error) {
       console.error("Error fetching Bitcoin price:", error);
-    }
-  }
-
-  function calculateSatoshis() {
-    if (bitcoinPrice > 0) {
-      satoshis = (total / bitcoinPrice) * 100000000; // 1 BTC = 100,000,000 satoshis
     }
   }
 
@@ -256,6 +267,7 @@
 
   function handlePaymentSelect(methodId: string) {
     selectedMethod = methodId;
+    previousSatoshis = satoshis;
     generateInvoice();
   }
 
@@ -284,6 +296,31 @@
       clearInterval(interval);
     });
   });
+
+  // Setup price updates and cleanup
+  onMount(() => {
+    if (show) {
+      fetchBitcoinPrice();
+    }
+
+    // Update price and invoice every minute
+    autoRefreshInterval = setInterval(() => {
+      if (show && selectedMethod) {
+        fetchBitcoinPrice();
+      }
+    }, 60000);
+
+    return () => {
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+      }
+    };
+  });
+
+  // Clear intervals when modal is closed
+  $: if (!show && autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+  }
 </script>
 
 {#if show}
@@ -462,6 +499,12 @@
                       >
                         {paymentResult}
                       </p>
+                    {/if}
+                    {#if invoice && previousSatoshis !== satoshis}
+                      <div class="text-sm text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
+                        <Icon icon="material-symbols:warning" class="inline-block mr-2" />
+                        Bitcoin price has changed. A new invoice has been generated.
+                      </div>
                     {/if}
                   </div>
                 </div>
