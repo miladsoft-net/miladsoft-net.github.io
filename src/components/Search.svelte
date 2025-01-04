@@ -36,6 +36,16 @@ const fakeResult = [
   },
 ]
 
+interface SearchConfig {
+  contentType: boolean;
+  processData: boolean;
+}
+
+const searchConfig: SearchConfig = {
+  contentType: false,
+  processData: false
+};
+
 onMount(async () => {
   try {
     isClient = typeof window !== 'undefined'
@@ -68,7 +78,7 @@ async function search(keyword: string, isDesktop: boolean) {
     
     if (import.meta.env.PROD && searchInstance) {
       try {
-        const ret = await searchInstance.search(keyword)
+        const ret = await searchInstance.search(keyword, searchConfig)
         if (ret?.results) {
           searchResults = await Promise.all(
             ret.results.map((item: { data: () => Promise<SearchResult> }) => item.data())
