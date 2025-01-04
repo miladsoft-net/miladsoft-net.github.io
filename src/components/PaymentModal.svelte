@@ -54,7 +54,7 @@
   let verifyUrl = "";
   let isGeneratingInvoice = false;
   let previousSatoshis = 0;
-  let autoRefreshInterval: NodeJS.Timer;
+  let autoRefreshInterval: ReturnType<typeof setInterval>;
 
   // Watch for changes in show and total
   $: {
