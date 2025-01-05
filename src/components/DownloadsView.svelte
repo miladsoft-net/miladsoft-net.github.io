@@ -2,11 +2,13 @@
   import { downloadStore, type Download } from "../store/downloadsStore";
   import Icon from "@iconify/svelte";
   import { toast } from "../lib/toast";
-  import { getCollection } from "astro:content";
   import type { Post } from "../content/config";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { saveExportFile, handleImportFile } from "../utils/downloadManager";
+
+  // Accept posts as a prop
+  export let posts: Post[] = [];
 
   const ICONS = {
     download: "fluent:arrow-download-24-filled",
@@ -21,24 +23,14 @@
 
   // Get downloads directly from the store subscription
   $: downloads = $downloadStore;
-  let posts: Post[] = [];
 
-  let isLoading = true;
+  let isLoading = false;
   let isClient = false;
   let isHydrated = false;
-  let mountedPosts: Post[] = [];
 
-  onMount(async () => {
+  onMount(() => {
     isClient = true;
-    try {
-      const allPosts = await getCollection("posts");
-      mountedPosts = allPosts;
-     } catch (error) {
-      console.error("Failed to fetch posts:", error);
-    } finally {
-      isLoading = false;
-      isHydrated = true;
-    }
+    isHydrated = true;
   });
 
   // Create a unique key for each download
@@ -55,17 +47,7 @@
     return acc;
   }, [] as Download[]);
 
-  // Fetch all posts on component mount
-  onMount(async () => {
-    try {
-      const allPosts = await getCollection("posts");
-      posts = allPosts;
-     } catch (error) {
-      console.error("Failed to fetch posts:", error);
-    }
-  });
-
-  // Find post by slug
+  // Modified findPost to use passed posts
   function findPost(slug: string) {
     const post = posts.find((p) => p.slug === slug);
     console.log(

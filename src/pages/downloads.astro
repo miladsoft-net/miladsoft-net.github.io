@@ -1,10 +1,13 @@
 ---
 import MainGridLayout from '../layouts/MainGridLayout.astro'
 import DownloadsView from '../components/DownloadsView.svelte'
+import { getCollection } from 'astro:content'
+
+const posts = await getCollection('posts')
 ---
 
 <MainGridLayout title="My Downloads">
   <div class="card-base p-6">
-    <DownloadsView client:load />
+    <DownloadsView client:load posts={posts} />
   </div>
 </MainGridLayout>
