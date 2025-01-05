@@ -1,0 +1,110 @@
+---
+import WidgetLayout from './WidgetLayout.astro'
+import ButtonLink from '../control/ButtonLink.astro'
+
+interface Props {
+    class?: string;
+    style?: string;
+}
+
+const { class: className, style } = Astro.props;
+const COLLAPSED_HEIGHT = '5rem'
+const ITEMS_THRESHOLD = 3; // Show More button after 3 items
+---
+
+<WidgetLayout 
+    name="Shopping Cart" 
+    id="cart-widget" 
+    class={className} 
+    style={style}
+    isCollapsed={true}
+    collapsedHeight={COLLAPSED_HEIGHT}
+>
+    <div class="flex flex-col gap-2">
+        <div id="cart-items" class="flex flex-col gap-2 mb-3">
+            <div class="text-sm text-neutral-600 dark:text-neutral-400">Loading...</div>
+        </div>
+        
+        <button id="more-button" 
+            class="hidden text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+        >
+            Show More
+        </button>
+    </div>
+
+    <div class="flex flex-col gap-3 border-t pt-3 mt-2 border-neutral-200 dark:border-neutral-800">
+        <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Total:</span>
+            <span id="cart-total" class="font-bold text-neutral-900 dark:text-white">$0.00</span>
+        </div>
+        <ButtonLink
+            url="/cart/"
+            className="w-full justify-center bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white"
+            label="Go to checkout page"
+            id="checkout-button"
+        >
+            Checkout
+        </ButtonLink>
+    </div>
+</WidgetLayout>
+
+<script>
+    import { cart } from '../../store/cartStore';
+    
+    const cartItemsElement = document.getElementById('cart-items');
+    const cartTotalElement = document.getElementById('cart-total');
+    const checkoutButton = document.getElementById('checkout-button');
+    const moreButton = document.getElementById('more-button');
+    
+    let isExpanded = false;
+    const ITEMS_THRESHOLD = 3;
+
+    moreButton?.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        updateCartDisplay();
+    });
+
+    function updateCartDisplay() {
+        if (!cartItemsElement || !cartTotalElement || !checkoutButton || !moreButton) return;
+
+        cart.subscribe(items => {
+            if (items.length === 0) {
+                cartItemsElement.innerHTML = '<div class="text-sm text-neutral-500 dark:text-neutral-400">Cart is empty</div>';
+                cartTotalElement.textContent = '$0.00';
+                checkoutButton.classList.add('opacity-50', 'cursor-not-allowed');
+                moreButton.classList.add('hidden');
+                return;
+            }
+
+            checkoutButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            const total = items.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
+            cartTotalElement.textContent = `$${total.toFixed(2)}`;
+
+            // Show all items or just the first ITEMS_THRESHOLD
+            const displayItems = isExpanded ? items : items.slice(0, ITEMS_THRESHOLD);
+            
+            cartItemsElement.innerHTML = displayItems
+                .map(item => `
+                    <div class="flex justify-between items-center py-1.5 text-sm group">
+                        <span class="truncate flex-1 text-neutral-800 dark:text-neutral-200 group-hover:text-neutral-900 dark:group-hover:text-neutral-100">
+                            ${item.title}
+                        </span>
+                        <span class="font-medium text-[var(--primary)]">
+                            $${(item.salePrice || item.price).toFixed(2)}
+                        </span>
+                    </div>
+                `)
+                .join('');
+
+            // Show/Hide More button
+            if (items.length > ITEMS_THRESHOLD) {
+                moreButton.classList.remove('hidden');
+                moreButton.textContent = isExpanded ? 'Show Less' : `Show More (${items.length - ITEMS_THRESHOLD})`;
+            } else {
+                moreButton.classList.add('hidden');
+            }
+        });
+    }
+
+    updateCartDisplay();
+</script>

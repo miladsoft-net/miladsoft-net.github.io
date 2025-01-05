@@ -3,13 +3,15 @@ interface Props {
   badge?: string
   url?: string
   label?: string
+  className?: string
+  id?: string
 }
-const { badge, url, label } = Astro.props
+const { badge, url, label, className, id } = Astro.props
 ---
-<a href={url} aria-label={label}>
+<a href={url} aria-label={label} id={id}>
     <button
-        class:list={`
-            w-full
+        class:list={[
+            `w-full
             h-10
             rounded-lg
             bg-none
@@ -22,9 +24,9 @@ const { badge, url, label } = Astro.props
             text-neutral-700
             hover:text-[var(--primary)]
             dark:text-neutral-300
-            dark:hover:text-[var(--primary)]
-        `
-        }
+            dark:hover:text-[var(--primary)]`,
+            className
+        ]}
     >
         <div class="flex items-center justify-between relative mr-2">
             <div class="overflow-hidden text-left whitespace-nowrap overflow-ellipsis  ">
