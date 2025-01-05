@@ -14,7 +14,7 @@
   import { fade, scale, blur } from "svelte/transition";
   import { quintOut } from "svelte/easing";
   import { downloadStore, type Download } from "../store/downloadsStore";
-  import { cart } from '../store/cartStore';
+  import { cart } from "../store/cartStore";
 
   const dispatch = createEventDispatcher();
 
@@ -24,8 +24,8 @@
       name: "Bitcoin Lightning",
       description: "Fast & low fees",
       icon: "cryptocurrency:btc",
-      network: "Lightning Network"
-    }
+      network: "Lightning Network",
+    },
   ];
 
   export let show = false;
@@ -76,7 +76,7 @@
       const response = await fetch("https://mempool.space/api/v1/prices");
       const data = await response.json();
       const newPrice = data.USD;
-      
+
       if (newPrice !== bitcoinPrice) {
         bitcoinPrice = newPrice;
       }
@@ -147,7 +147,7 @@
         if (downloadStore.checkExistingDownload(product.slug)) {
           // Update existing download with extended expiry and more downloads
           await downloadStore.updateExistingDownload(product.slug, 3);
-          console.log('Extended download for:', product.slug);
+          console.log("Extended download for:", product.slug);
         } else {
           // Add new download
           const downloadItem: Download = {
@@ -158,25 +158,25 @@
             price: product.price,
             token: crypto.randomUUID(),
             downloads: 0,
-            maxDownloads: 3
+            maxDownloads: 3,
           };
           downloadStore.addDownload(downloadItem);
-          console.log('Added new download:', product.slug);
+          console.log("Added new download:", product.slug);
         }
       }
 
       // Clear cart
       cart.clear();
-      console.log('Cart cleared');
+      console.log("Cart cleared");
 
       // Fire confetti
-      const confetti = (await import('canvas-confetti')).default;
-      
+      const confetti = (await import("canvas-confetti")).default;
+
       // Fire initial burst
       confetti({
         particleCount: 100,
         spread: 70,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
       });
 
       // Fire multiple bursts in sequence
@@ -188,58 +188,60 @@
           particleCount: 2,
           angle: 60,
           spread: 55,
-          origin: { x: 0 }
+          origin: { x: 0 },
         });
         confetti({
           particleCount: 2,
           angle: 120,
           spread: 55,
-          origin: { x: 1 }
+          origin: { x: 1 },
         });
 
         if (Date.now() < end) {
           requestAnimationFrame(frame);
         }
-      }());
+      })();
 
       // Show success animation and redirect
       showSuccessAnimation();
-      
+
       // Close modal and redirect after animation
       setTimeout(() => {
         show = false;
-        window.location.href = '/downloads/';
+        window.location.href = "/downloads/";
       }, 3000);
 
-      dispatch('success');
+      dispatch("success");
     } catch (error) {
-      console.error('Payment processing error:', error);
+      console.error("Payment processing error:", error);
       paymentResult = "❌ Failed to process payment";
     }
   }
 
   function showSuccessAnimation() {
-    const successMessage = document.createElement('div');
-    successMessage.className = 'fixed inset-0 flex items-center justify-center bg-white/95 dark:bg-gray-900/95 z-50';
-    successMessage.innerHTML = `
-      <div class="text-center p-8 transform scale-up">
-        <div class="success-checkmark">
-          <div class="check-icon">
-            <span class="icon-line line-tip"></span>
-            <span class="icon-line line-long"></span>
-            <div class="icon-circle"></div>
-            <div class="icon-fix"></div>
-          </div>
-        </div>
-        <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Payment Successful!</h2>
-        <p class="text-lg text-gray-600 dark:text-gray-400">Your downloads have been updated</p>
-        <div class="animate-bounce mt-4">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
+  const successMessage = document.createElement("div");
+  successMessage.className =
+    "fixed inset-0 flex items-center justify-center bg-white/30 dark:bg-black/30 backdrop-blur-lg z-50";
+  successMessage.innerHTML = `
+    <div class="text-center p-8 transform scale-up bg-white/70 dark:bg-black/70 rounded-lg backdrop-blur-lg shadow-lg">
+      <div class="success-checkmark">
+        <div class="check-icon">
+          <span class="icon-line line-tip"></span>
+          <span class="icon-line line-long"></span>
+          <div class="icon-circle"></div>
+          <div class="icon-fix"></div>
         </div>
       </div>
-    `;
-    document.body.appendChild(successMessage);
-  }
+      <h2 class="text-3xl font-bold mb-4 text-black dark:text-white">Payment Successful!</h2>
+      <p class="text-lg text-gray-600 dark:text-gray-400">Your downloads have been updated</p>
+      <div class="animate-bounce mt-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Redirecting to downloads...</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(successMessage);
+}
+
 
   function generateSecureToken() {
     return crypto.randomUUID();
@@ -333,21 +335,21 @@
     >
       <!-- Header with matching rounded corners -->
       <div
-        class="sticky top-0 z-10 bg-inherit p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-3xl"
+        class="sticky top-0 z-10 bg-inherit p-4 flex justify-between items-center rounded-t-3xl"
       >
         <h2
-          class="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100"
+          class="text-xl font-bold flex items-center gap-2 text-black dark:text-white"
         >
           <Icon icon="material-symbols:payments-outline" class="w-6 h-6" />
           Select Payment Method
         </h2>
         <button
-          class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
+          class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90"
           on:click={handleClose}
         >
           <Icon
             icon="material-symbols:close"
-            class="w-6 h-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            class="w-6 h-6 text-gray-500 dark:text-gray-400 dark:hover:text-gray-200"
           />
         </button>
       </div>
@@ -360,28 +362,27 @@
             <!-- Payment methods section -->
             {#each paymentMethods as method}
               <button
-                class="w-full flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                class="w-full flex items-center gap-4 p-4 rounded-lg bg-[var(--primary)] transition-colors"
                 class:selected={selectedMethod === method.id}
                 on:click={() => handlePaymentSelect(method.id)}
               >
                 <div class="flex-shrink-0">
                   <Icon
                     icon={method.icon}
-                    class="w-6 h-6 text-gray-900 dark:text-gray-100"
+                    class="w-6 h-6 text-black dark:text-white"
                   />
                 </div>
                 <div class="flex-1">
-                  <span
-                    class="font-medium block text-gray-900 dark:text-white"
+                  <span class="font-medium block text-black dark:text-white"
                     >{method.name}</span
                   >
-                  <span class="text-sm text-gray-600 dark:text-gray-400"
+                  <span class="text-sm text-black dark:text-white"
                     >{method.description}</span
                   >
                 </div>
                 <Icon
                   icon="material-symbols:chevron-right"
-                  class="w-5 h-5 text-gray-900 dark:text-gray-100"
+                  class="w-5 h-5 text-black dark:text-white"
                 />
               </button>
             {/each}
@@ -398,7 +399,7 @@
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     Total Amount
                   </p>
-                  <p class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  <p class="text-lg font-bold text-black dark:text-white">
                     ${total.toFixed(2)}
                   </p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -409,7 +410,7 @@
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     Network
                   </p>
-                  <p class="font-medium text-gray-900 dark:text-gray-100">
+                  <p class="font-medium text-black dark:text-white">
                     {paymentMethods.find((m) => m.id === selectedMethod)
                       ?.network}
                   </p>
@@ -438,10 +439,9 @@
                 <div class="space-y-6">
                   <!-- Invoice copy section with rounded corners -->
                   <div
-                    class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-[var(--card-bg)] rounded-xl"
+                    class="flex items-center gap-2 p-3 bg-white dark:bg-[var(--card-bg)] rounded-xl"
                   >
-                    <code
-                      class="text-sm break-all text-gray-900 dark:text-gray-100"
+                    <code class="text-sm break-all text-black dark:text-white"
                       >{invoice}</code
                     >
                     <button
@@ -479,15 +479,21 @@
                         class:text-green-500={paymentResult.includes("✅")}
                         class:text-red-500={paymentResult.includes("❌")}
                         class:text-yellow-500={paymentResult.includes("⚠️")}
-                        class:text-[var(--primary)]={paymentResult.includes("⏳") ||
-                          paymentResult.includes("🔄")}
+                        class:text-[var(--primary)]={paymentResult.includes(
+                          "⏳"
+                        ) || paymentResult.includes("🔄")}
                       >
                         {paymentResult}
                       </p>
                     {/if}
                     {#if invoice && previousSatoshis !== satoshis}
-                      <div class="text-sm text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
-                        <Icon icon="material-symbols:warning" class="inline-block mr-2" />
+                      <div
+                        class="text-sm text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg"
+                      >
+                        <Icon
+                          icon="material-symbols:warning"
+                          class="inline-block mr-2"
+                        />
                         Bitcoin price has changed. A new invoice has been generated.
                       </div>
                     {/if}
@@ -720,25 +726,25 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgb(156, 163, 175);
+    background-color: rgba(156, 163, 175, 0.5);
     border-radius: 20px;
   }
 
   :global(.dark) .custom-scrollbar {
-    scrollbar-color: rgb(75, 85, 99) transparent;
+    scrollbar-color: rgba(0, 0, 0,0.5)transparent;
   }
 
   :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgb(75, 85, 99);
+    background-color: rgba(75, 85, 99, 0.5);
   }
 
   /* Hover effect for scrollbar */
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(107, 114, 128);
+    background-color: rgba(107, 114, 128, 0.5);
   }
 
   :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(107, 114, 128);
+    background-color: rgba(107, 114, 128, 0.5);
   }
 
   /* Make inner containers match the rounded corners */

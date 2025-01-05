@@ -136,7 +136,9 @@
 
 {#if isLoading}
   <div class="flex justify-center items-center min-h-[200px]">
-    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--primary)]"></div>
+    <div
+      class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--primary)]"
+    ></div>
   </div>
 {:else if isHydrated}
   <div class="max-w-4xl mx-auto">
@@ -144,7 +146,7 @@
     <div class="flex items-center justify-between mb-8 pb-4">
       <div class="flex items-center gap-2">
         <!-- <Icon icon={ICONS.downloadTitle} class="w-6 h-6 text-[var(--primary)]" /> -->
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 class="text-2xl font-bold text-black dark:text-white">
           My Downloads
         </h1>
       </div>
@@ -176,11 +178,16 @@
 
     {#if isLoading}
       <div class="flex justify-center items-center min-h-[200px]">
-        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--primary)]"></div>
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--primary)]"
+        ></div>
       </div>
     {:else if isClient}
       {#if $downloadStore.length === 0}
-        <div class="flex flex-col items-center justify-center h-[300px]" in:fade>
+        <div
+          class="flex flex-col items-center justify-center h-[300px]"
+          in:fade
+        >
           <Icon
             icon={ICONS.download}
             class="text-[var(--primary)] dark:text-[var(--primary)] w-20 h-20 animate-bounce"
@@ -200,7 +207,7 @@
                 <!-- Title with Link -->
                 <a
                   href={`/posts/${download.slug}/`}
-                  class="inline-block text-lg font-medium text-gray-800 dark:text-gray-100 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors mb-3"
+                  class="inline-block text-lg font-medium text-gray-800 dark:text-white hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors mb-3"
                 >
                   {download.title}
                 </a>
@@ -269,7 +276,9 @@
                     </div>
                   </div>
 
-                  <div class="w-full sm:w-auto flex justify-center sm:justify-end">
+                  <div
+                    class="w-full sm:w-auto flex justify-center sm:justify-end"
+                  >
                     <button
                       class="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg
                                transition-all duration-300 ease-in-out shadow-lg
@@ -279,7 +288,10 @@
                       disabled={download.downloads >= download.maxDownloads}
                       data-slug={download.slug}
                     >
-                      <Icon icon={ICONS.download} class="w-6 h-6 sm:w-6 sm:h-6" />
+                      <Icon
+                        icon={ICONS.download}
+                        class="w-6 h-6 sm:w-6 sm:h-6"
+                      />
                       <span>Download</span>
                     </button>
                   </div>
@@ -287,7 +299,7 @@
               </div>
 
               <!-- Progress Bar -->
-              <div class="h-1 bg-gray-100 dark:bg-white/10 rounded-b-xl">
+              <div class="h-1 bg-white dark:bg-white/10 rounded-b-xl">
                 <div
                   class="h-full bg-[var(--primary)] transition-all duration-300"
                   style="width: {(download.downloads / download.maxDownloads) *

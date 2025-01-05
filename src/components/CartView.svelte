@@ -6,7 +6,7 @@
   import Icon from "@iconify/svelte";
   import PaymentModal from "./PaymentModal.svelte";
   import { fade, fly } from "svelte/transition";
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
 
   let isClient = false;
   let showPaymentModal = false;
@@ -14,7 +14,7 @@
 
   onMount(() => {
     isClient = true;
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       crypto = window.crypto;
     }
   });
@@ -31,8 +31,8 @@
 
   // Generate UUID safely
   function generateToken() {
-    if (!isClient || !crypto) return '';
-    
+    if (!isClient || !crypto) return "";
+
     try {
       // Bind the method to window.crypto to avoid "Illegal invocation"
       const randomUUID = crypto.randomUUID.bind(crypto);
@@ -45,7 +45,7 @@
 
   async function handlePaymentSuccess() {
     if (!isClient) return;
-    
+
     try {
       const timestamp = new Date().toISOString();
       let processedItems = 0;
@@ -56,7 +56,7 @@
 
         const token = generateToken();
         if (!token) {
-          throw new Error('Failed to generate token');
+          throw new Error("Failed to generate token");
         }
 
         try {
@@ -124,55 +124,70 @@
         </p>
       </div>
     {:else}
-    <div class="flex flex-col gap-4" in:fade>
-      {#each $cart as item}
-        <div
-          class="flex justify-between items-center p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
-          in:fly={{ y: 20, duration: 300 }}
-        >
-          <div>
-            <a
-              href={`/posts/${item.slug}/`}
-              class="text-gray-800 dark:text-gray-100 font-medium hover:text-[var(--primary)] transition-colors"
-            >
-              {item.title}
-            </a>
-            <div class="flex gap-2 items-center mt-1">
-              {#if item.salePrice}
-                <span class="text-gray-700 dark:text-gray-300 line-through">${item.price}</span>
-                <span class="text-[var(--primary)] font-semibold">${item.salePrice}</span>
-              {:else}
-                <span class="text-gray-600 dark:text-gray-300">${item.price}</span>
-              {/if}
-            </div>
-          </div>
-          <button
-            class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
-            on:click={() => cart.removeItem(item.slug)}
+      <div class="flex flex-col gap-4" in:fade>
+        {#each $cart as item}
+          <div
+            class="flex justify-between items-center p-4 bg-[var(--page-bg)] dark:bg-white/10 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+            in:fly={{ y: 20, duration: 300 }}
           >
-            <Icon icon="material-symbols:delete-outline" class="w-6 h-6 sm:w-6 sm:h-6" />
-          </button>
+            <div>
+              <a
+                href={`/posts/${item.slug}/`}
+                class="text-gray-800 dark:text-white font-medium hover:text-[var(--primary)] transition-colors"
+              >
+                {item.title}
+              </a>
+              <div class="flex gap-2 items-center mt-1">
+                {#if item.salePrice}
+                  <span class="text-gray-700 dark:text-gray-300 line-through"
+                    >${item.price}</span
+                  >
+                  <span class="text-[var(--primary)] font-semibold"
+                    >${item.salePrice}</span
+                  >
+                {:else}
+                  <span class="text-gray-600 dark:text-gray-300"
+                    >${item.price}</span
+                  >
+                {/if}
+              </div>
+            </div>
+            <button
+              class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+              on:click={() => cart.removeItem(item.slug)}
+            >
+              <Icon
+                icon="material-symbols:delete-outline"
+                class="w-6 h-6 sm:w-6 sm:h-6"
+              />
+            </button>
+          </div>
+        {/each}
+
+        <div class="flex justify-between items-center p-4 mt-4">
+          <span class="text-gray-800 dark:text-gray-200 font-semibold text-lg"
+            >Total:</span
+          >
+          <span class="text-[var(--primary)] font-bold text-xl"
+            >${total.toFixed(2)}</span
+          >
         </div>
-      {/each}
-    
-      <div class="flex justify-between items-center p-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-        <span class="text-gray-800 dark:text-gray-200 font-semibold text-lg">Total:</span>
-        <span class="text-[var(--primary)] font-bold text-xl">${total.toFixed(2)}</span>
-      </div>
-    
-      <button
-        class="w-full py-4 mt-4 bg-[var(--primary)] text-white rounded-xl font-semibold
+
+        <button
+          class="w-full py-4 mt-4 bg-[var(--primary)] text-white rounded-xl font-semibold
                transition-all duration-300 ease-in-out hover:opacity-90 hover:-translate-y-1 hover:shadow-lg
                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
                disabled:bg-gray-400 dark:disabled:bg-gray-700 flex items-center justify-center gap-2"
-        disabled={$cart.length === 0}
-        on:click={handleCheckout}
-      >
-        <Icon icon="material-symbols:shopping-cart-checkout" class="w-6 h-6 sm:w-6 sm:h-6" />
-        <span>Proceed to Checkout</span>
-      </button>
-    </div>
-    
+          disabled={$cart.length === 0}
+          on:click={handleCheckout}
+        >
+          <Icon
+            icon="material-symbols:shopping-cart-checkout"
+            class="w-6 h-6 sm:w-6 sm:h-6"
+          />
+          <span>Proceed to Checkout</span>
+        </button>
+      </div>
     {/if}
   </div>
 
