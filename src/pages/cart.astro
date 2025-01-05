@@ -6,6 +6,6 @@ import CartView from '../components/CartView.svelte'
 <MainGridLayout title="Shopping Cart">
   <div class="card-base p-6">
     <h1 class="text-2xl font-bold mb-6 text-black/90 dark:text-white/90">Shopping Cart</h1>
-    <CartView client:only="svelte" />
+    <CartView client:load />
   </div>
 </MainGridLayout>
