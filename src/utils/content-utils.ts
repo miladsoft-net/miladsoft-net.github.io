@@ -6,7 +6,7 @@ import { i18n } from '@i18n/translation'
 export async function getSortedPosts(): Promise<
   { body: string, data: BlogPostData; slug: string }[]
 > {
-  const allBlogPosts = (await getCollection('posts', ({ data }) => {
+  const allBlogPosts = (await getCollection('posts', ({ data }: { data: BlogPostData }) => {
     return import.meta.env.PROD ? data.draft !== true : true
   })) as unknown as { body: string, data: BlogPostData; slug: string }[]
 
@@ -36,7 +36,7 @@ export type Tag = {
 }
 
 export async function getTagList(): Promise<Tag[]> {
-  const allBlogPosts = await getCollection<'posts'>('posts', ({ data }) => {
+  const allBlogPosts = await getCollection('posts', ({ data }: { data: BlogPostData }) => {
     return import.meta.env.PROD ? data.draft !== true : true
   })
 
@@ -62,7 +62,7 @@ export type Category = {
 }
 
 export async function getCategoryList(): Promise<Category[]> {
-  const allBlogPosts = await getCollection<'posts'>('posts', ({ data }) => {
+  const allBlogPosts = await getCollection('posts', ({ data }: { data: BlogPostData }) => {
     return import.meta.env.PROD ? data.draft !== true : true
   })
   const count: { [key: string]: number } = {}
