@@ -79,14 +79,12 @@
       
       if (newPrice !== bitcoinPrice) {
         bitcoinPrice = newPrice;
-        // calculateSatoshis will be triggered by the reactive statement
       }
     } catch (error) {
       console.error("Error fetching Bitcoin price:", error);
     }
   }
 
-  // Update the status messages to include emojis for better visibility
   async function generateInvoice() {
     isGeneratingInvoice = true;
     paymentResult = "";

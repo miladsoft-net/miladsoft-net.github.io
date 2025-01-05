@@ -44,9 +44,6 @@ importers:
       '@iconify-json/simple-icons':
         specifier: ^1.2.18
         version: 1.2.18
-      '@iconify/react':
-        specifier: ^5.1.0
-        version: 5.1.0(react@19.0.0)
       '@swup/astro':
         specifier: ^1.4.1
         version: 1.4.1(@types/babel__core@7.20.5)
@@ -1078,11 +1075,6 @@ packages:
 
   '@iconify-json/simple-icons@1.2.18':
     resolution: {integrity: sha512-ae4ig7fxNXME1wl5og7Ocp82TM4jyz6IsOyI8GrteSbvHR9gaPu2Z01Amn5V/xo1Y7A7/+EH/3Ovpy2az/gYbg==}
-
-  '@iconify/react@5.1.0':
-    resolution: {integrity: sha512-vj2wzalywy23DR37AnsogMPIkDa1nKEqITjxpH4z44tiLV869Mh7VyydD4/t0yJLEs9tsxlrPWtXvMOe1Lcd5g==}
-    peerDependencies:
-      react: '>=16'
 
   '@iconify/svelte@4.0.2':
     resolution: {integrity: sha512-6BSrU85FzGfhQD3bTXpnkCCvBAglEt8T9QednVnXAYm4C+d3464y+pYMzhQNJm5mPId2cuiw+2wXlDflXllHDw==}
@@ -3993,10 +3985,6 @@ packages:
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
 
-  react@19.0.0:
-    resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
-    engines: {node: '>=0.10.0'}
-
   read-cache@1.0.0:
     resolution: {integrity: sha512-Owdv/Ft7IjOgm/i0xvNDZ1LrRANRfew4b2prF3OWMQLxLfu3bS8FVhCsrSCMK4lR56Y9ya+AThoTpDCTxCmpRA==}
 
@@ -6007,11 +5995,6 @@ snapshots:
   '@iconify-json/simple-icons@1.2.18':
     dependencies:
       '@iconify/types': 2.0.0
-
-  '@iconify/react@5.1.0(react@19.0.0)':
-    dependencies:
-      '@iconify/types': 2.0.0
-      react: 19.0.0
 
   '@iconify/svelte@4.0.2(svelte@5.2.2)':
     dependencies:
@@ -9409,8 +9392,6 @@ snapshots:
   randombytes@2.1.0:
     dependencies:
       safe-buffer: 5.2.1
-
-  react@19.0.0: {}
 
   read-cache@1.0.0:
     dependencies:
