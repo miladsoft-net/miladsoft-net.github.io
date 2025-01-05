@@ -114,49 +114,58 @@ function createDownloadStore() {
     },
 
     handleSecureDownload: async (download: Download, onProgress?: (progress: number) => void, posts?: Post[]) => {
-      console.log('Starting secure download for:', download.slug);
-      
-      if (!posts) {
-        console.error('Posts array is missing');
-        throw new Error('Posts array is required for download');
-      }
+      try {
+        console.log('Starting secure download process...', { download, postsAvailable: !!posts });
+        
+        if (!download || !download.slug) {
+          throw new Error('Invalid download object');
+        }
     
-      console.log('Available posts:', posts.map(p => ({ slug: p.slug, url: p.data?.downloadUrl })));
-      
-      const post = posts.find(p => p.slug === download.slug);
-      console.log('Found post:', post);
+        if (!posts || posts.length === 0) {
+          throw new Error('Posts array is empty or undefined');
+        }
     
-      if (!post) {
-        throw new Error(`Post not found for slug: ${download.slug}`);
-      }
-      
-      // Try both direct URL and data.downloadUrl
-      const downloadUrl = post.data?.downloadUrl || download.downloadUrl;
-      if (!downloadUrl) {
-        console.error('Post data:', post.data);
-        throw new Error(`Download URL not found for post: ${download.slug}`);
-      }
+        const post = posts.find(p => p.slug === download.slug);
+        if (!post) {
+          throw new Error(`Post not found for slug: ${download.slug}`);
+        }
     
-      console.log('Using download URL:', downloadUrl);
-      
-      const secureUrl = SecureDownloader.generateSecureUrl(
-        downloadUrl,
-        download.token
-      );
+        const downloadUrl = post.data?.downloadUrl || download.downloadUrl;
+        if (!downloadUrl) {
+          throw new Error('Download URL is missing');
+        }
     
-      await SecureDownloader.downloadWithProgress(
-        secureUrl,
-        `${download.title}.miladsoft`,
-        onProgress
-      );
+        if (!download.token) {
+          throw new Error('Download token is missing');
+        }
     
-      return update(downloads => {
-        const newDownloads = downloads.map(d =>
-          d.slug === download.slug ? { ...d, downloads: (d.downloads || 0) + 1 } : d
+        console.log('Generating secure URL for:', downloadUrl);
+        const secureUrl = SecureDownloader.generateSecureUrl(downloadUrl, download.token);
+        
+        console.log('Starting file download...');
+        await SecureDownloader.downloadWithProgress(
+          secureUrl,
+          `${download.title || 'download'}.miladsoft`,
+          (progress) => {
+            console.log(`Download progress: ${progress}%`);
+            onProgress?.(progress);
+          }
         );
-        saveToStorage(newDownloads);
-        return newDownloads;
-      });
+    
+        console.log('Download completed successfully');
+        
+        return update(downloads => {
+          const newDownloads = downloads.map(d =>
+            d.slug === download.slug ? { ...d, downloads: (d.downloads || 0) + 1 } : d
+          );
+          saveToStorage(newDownloads);
+          return newDownloads;
+        });
+    
+      } catch (error) {
+        console.error('Download failed:', error);
+        throw error;
+      }
     }
   };
 }

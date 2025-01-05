@@ -3,13 +3,10 @@ import CryptoJS from 'crypto-js';
 export class SecureDownloader {
   private static CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
-  static generateSecureUrl(originalUrl: string, token: string): string {
-    console.log('Generating secure URL for:', originalUrl);
-    const timestamp = Date.now();
-    const signature = CryptoJS.HmacSHA256(`${originalUrl}${timestamp}`, token).toString();
-    const secureUrl = `/api/download?url=${encodeURIComponent(originalUrl)}&t=${timestamp}&s=${signature}`;
-    console.log('Generated secure URL:', secureUrl);
-    return secureUrl;
+  static generateSecureUrl(baseUrl: string, token: string): string {
+    const url = new URL(baseUrl);
+    url.searchParams.append('token', token);
+    return url.toString();
   }
 
   static async downloadWithProgress(
