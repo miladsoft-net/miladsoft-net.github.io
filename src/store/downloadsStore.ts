@@ -1,5 +1,7 @@
 import { writable, get } from 'svelte/store';
 import CryptoJS from 'crypto-js';
+import { SecureDownloader } from '../utils/secureDownloader'; // Adjust the path as necessary
+import type { Post } from '../content/config';
 
 export interface Download {
   slug: string;
@@ -109,6 +111,52 @@ function createDownloadStore() {
       const exists = downloads.some(d => d.slug === slug);
       console.log('Checking download exists:', slug, exists); // Debug log
       return exists;
+    },
+
+    handleSecureDownload: async (download: Download, onProgress?: (progress: number) => void, posts?: Post[]) => {
+      console.log('Starting secure download for:', download.slug);
+      
+      if (!posts) {
+        console.error('Posts array is missing');
+        throw new Error('Posts array is required for download');
+      }
+    
+      console.log('Available posts:', posts.map(p => ({ slug: p.slug, url: p.data?.downloadUrl })));
+      
+      const post = posts.find(p => p.slug === download.slug);
+      console.log('Found post:', post);
+    
+      if (!post) {
+        throw new Error(`Post not found for slug: ${download.slug}`);
+      }
+      
+      // Try both direct URL and data.downloadUrl
+      const downloadUrl = post.data?.downloadUrl || download.downloadUrl;
+      if (!downloadUrl) {
+        console.error('Post data:', post.data);
+        throw new Error(`Download URL not found for post: ${download.slug}`);
+      }
+    
+      console.log('Using download URL:', downloadUrl);
+      
+      const secureUrl = SecureDownloader.generateSecureUrl(
+        downloadUrl,
+        download.token
+      );
+    
+      await SecureDownloader.downloadWithProgress(
+        secureUrl,
+        `${download.title}.miladsoft`,
+        onProgress
+      );
+    
+      return update(downloads => {
+        const newDownloads = downloads.map(d =>
+          d.slug === download.slug ? { ...d, downloads: (d.downloads || 0) + 1 } : d
+        );
+        saveToStorage(newDownloads);
+        return newDownloads;
+      });
     }
   };
 }

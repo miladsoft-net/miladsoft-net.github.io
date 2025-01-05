@@ -71,28 +71,25 @@
         return;
       }
 
-      // Find corresponding post
-      const post = findPost(download.slug);
-      if (!post?.data?.downloadUrl) {
-        throw new Error("Download URL not found");
-      }
+      console.log('Starting download for:', download.slug);
+      console.log('Available posts:', posts);
 
-      // Use encrypted download URL
-      const encryptedUrl = `${post.data.downloadUrl}?token=${download.token}&fmt=miladsoft`;
+      await downloadStore.handleSecureDownload(
+        download, 
+        (progress) => {
+          console.log(`Download progress: ${progress}%`);
+          const progressBar = document.querySelector(`#progress-${download.slug}`);
+          if (progressBar) {
+            (progressBar as HTMLElement).style.width = `${progress}%`;
+          }
+        },
+        posts
+      );
 
-      const a = document.createElement("a");
-      a.href = encryptedUrl;
-      a.download = `${post.data.title || download.title}.miladsoft`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      // Increment download count
-      downloadStore.incrementDownloadCount(download.slug);
-      toast.success("Download started");
+      toast.success("Download completed");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download file. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to download file");
     } finally {
       if (button) button.disabled = false;
     }
@@ -301,6 +298,7 @@
               <!-- Progress Bar -->
               <div class="h-1 bg-white dark:bg-white/10 rounded-b-xl">
                 <div
+                  id="progress-{download.slug}"
                   class="h-full bg-[var(--primary)] transition-all duration-300"
                   style="width: {(download.downloads / download.maxDownloads) *
                     100}%"
