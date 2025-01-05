@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { class: className, style } = Astro.props;
-const COLLAPSED_HEIGHT = "5rem";
+const COLLAPSED_HEIGHT = "4rem";
 const ITEMS_THRESHOLD = 3; // Show More button after 3 items
 ---
 
@@ -114,17 +114,17 @@ const ITEMS_THRESHOLD = 3; // Show More button after 3 items
       cartItemsElement.innerHTML = displayItems
         .map(
           (item) => `
-                    <a href="${item.productUrl}" class="block group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 rounded-lg px-2">
-                        <div class="flex justify-between items-center py-1.5 text-sm">
-                            <span class="truncate flex-1 text-neutral-800 dark:text-neutral-200 group-hover:text-[var(--primary)] transition-colors">
-                                ${item.title}
-                            </span>
-                            <span class="font-medium ml-2 text-neutral-600 dark:text-neutral-400 group-hover:text-[var(--primary)] transition-colors">
-                                $${(item.salePrice || item.price).toFixed(2)}
-                            </span>
-                        </div>
-                    </a>
-                `
+                        <a href="/posts/${item.slug}/" class="block w-full h-10 rounded-lg bg-none hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition-all pl-2 hover:pl-3">
+                            <div class="flex justify-between items-center h-full">
+                                <span class="truncate flex-1 text-neutral-700 hover:text-[var(--primary)] dark:text-neutral-300 dark:hover:text-[var(--primary)]">
+                                    ${item.title}
+                                </span>
+                                <span class="font-medium ml-4 mr-2 min-w-[4rem] text-right text-neutral-700 hover:text-[var(--primary)] dark:text-neutral-300 dark:hover:text-[var(--primary)]">
+                                    $${(item.salePrice || item.price).toFixed(2)}
+                                </span>
+                            </div>
+                        </a>
+                    `
         )
         .join("");
 
