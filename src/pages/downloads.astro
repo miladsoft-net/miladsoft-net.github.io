@@ -8,6 +8,6 @@ const posts = await getCollection('posts')
 
 <MainGridLayout title="My Downloads">
   <div class="card-base p-6">
-    <DownloadsView client:load posts={posts} />
+    <DownloadsView client:only="svelte" posts={posts} />
   </div>
 </MainGridLayout>
