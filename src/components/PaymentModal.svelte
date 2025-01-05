@@ -8,21 +8,12 @@
 </script>
 
 <script lang="ts">
-  // Remove SvelteKit import
-  // import { goto } from '$app/navigation';
   import Icon from "@iconify/svelte";
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
-
- 
-  import { portal } from "../utils/portal"; // Updated import
+  import { portal } from "../utils/portal";
   import { fade, scale, blur } from "svelte/transition";
   import { quintOut } from "svelte/easing";
   import { downloadStore, type Download } from "../store/downloadsStore";
-  import { getCollection, type CollectionEntry } from "astro:content";
-  import {
-    storeDownloadToken,
-    getCurrentUserId,
-  } from "../services/downloadTokenService";
   import { cart } from '../store/cartStore';
 
   const dispatch = createEventDispatcher();
@@ -147,10 +138,6 @@
     setTimeout(() => {
       clearInterval(checkInterval);
     }, 600000);
-  }
-
-  interface ExtendedWindow extends Window {
-    confetti: (options: any) => void;
   }
 
   async function handleSuccessfulPayment() {

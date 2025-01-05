@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cart } from "../store/cartStore";
+  import { cart, type CartItem } from "../store/cartStore";
   import { downloadStore } from "../store/downloadsStore";
   import type { Download } from "../store/downloadsStore";
   import { toast } from "../lib/toast";
@@ -19,6 +19,7 @@
     }
   });
 
+  // Use the cart store directly
   $: total = $cart.reduce(
     (sum, item) => sum + (item.salePrice || item.price),
     0
