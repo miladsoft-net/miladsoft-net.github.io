@@ -145,7 +145,7 @@ function createDownloadStore() {
         console.log('Starting file download...');
         await SecureDownloader.downloadWithProgress(
           secureUrl,
-          `${download.title || 'download'}.miladsoft`,
+          download.title, // This will be ignored in favor of the original filename
           (progress) => {
             console.log(`Download progress: ${progress}%`);
             onProgress?.(progress);

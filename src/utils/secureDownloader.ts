@@ -9,9 +9,20 @@ export class SecureDownloader {
     return url.toString();
   }
 
+  private static getOriginalFilename(url: string): string {
+    try {
+      const urlPath = new URL(url).pathname;
+      const filename = urlPath.split('/').pop() || '';
+      return filename;
+    } catch (error) {
+      console.error('Error extracting filename from URL:', error);
+      return 'download.zip';
+    }
+  }
+
   static async downloadWithProgress(
     url: string,
-    filename: string,
+    suggestedFilename: string,
     onProgress?: (progress: number) => void
   ): Promise<void> {
     console.log('Starting download from:', url);
@@ -30,6 +41,9 @@ export class SecureDownloader {
         throw new Error(`Download failed: ${response.statusText}`);
       }
       
+      // Get original filename from URL
+      const originalFilename = this.getOriginalFilename(url);
+
       const contentLength = Number(response.headers.get('content-length'));
       const reader = response.body?.getReader();
       if (!reader) throw new Error('Stream not available');
@@ -54,7 +68,8 @@ export class SecureDownloader {
       
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = filename;
+      // Use the original filename from the URL instead of the suggested one
+      a.download = originalFilename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

@@ -3,7 +3,7 @@ export function portal(node: HTMLElement, target: string = 'body') {
 
   function update(newTarget: string) {
     target = newTarget;
-    targetEl = document.querySelector(target);
+    targetEl = document.querySelector(target) as HTMLElement;
     if (targetEl) {
       targetEl.appendChild(node);
     }
