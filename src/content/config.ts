@@ -4,13 +4,18 @@ import { defineCollection, z } from 'astro:content';
 const posts = defineCollection({
   schema: z.object({
     title: z.string(),
-    description: z.string().optional(),
-    publishDate: z.date(),
-    fileName: z.string().optional(), // New field for secure downloads
+    published: z.date(),
+    updated: z.date().optional(),
+    draft: z.boolean().optional().default(false),
+    description: z.string().optional().default(''),
+    image: z.string().optional().default(''),
+    tags: z.array(z.string()).optional().default([]),
+    category: z.string().optional().default(''),
+    lang: z.string().optional().default(''),
+    isFree: z.boolean().default(true),
     price: z.number().optional(),
-    tags: z.array(z.string()).default([]),
-    image: z.string().optional(),
-    canonicalURL: z.string().url().optional(),
+    salePrice: z.number().optional(),
+    fileName: z.string().optional(), // مطمئن شوید که اینجا تعریف شده است
   })
 });
 

@@ -5,7 +5,7 @@ export interface CartItem {
   title: string;
   price: number;
   salePrice?: number;
-  fileName: string;
+  fileName: string; // مطمئن شوید که اینجا تعریف شده است
   productUrl: string;
   addedAt?: string;
   purchased?: boolean;

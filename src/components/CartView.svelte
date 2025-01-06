@@ -52,7 +52,10 @@
 
       // Process each cart item
       for (const item of $cart) {
-        if (!item.fileName) continue;
+        if (!item.fileName) {
+          console.warn(`Missing fileName for item: ${item.slug}`);
+          continue;
+        }
 
         const token = generateToken();
         if (!token) {
@@ -67,7 +70,7 @@
             const downloadItem: Download = {
               slug: item.slug,
               title: item.title,
-              fileName: item.fileName,
+              fileName: item.fileName, // Make sure fileName is included
               purchaseDate: timestamp,
               price: item.salePrice || item.price,
               token,
@@ -103,11 +106,12 @@
     }
   }
 
-  // Prepare products info for PaymentModal without fileName
+  // Prepare products info for PaymentModal with fileName
   $: products = $cart.map((item) => ({
     title: item.title,
     price: item.salePrice || item.price,
     slug: item.slug,
+    fileName: item.fileName, // Ensure fileName is included
   }));
 </script>
 

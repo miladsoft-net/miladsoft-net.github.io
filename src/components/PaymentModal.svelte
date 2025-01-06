@@ -1,12 +1,3 @@
-<script context="module">
-  // Add/remove body class when modal opens/closes
-  function toggleBodyScroll(show: boolean) {
-    if (typeof document !== "undefined") {
-      document.body.classList.toggle("modal-open", show);
-    }
-  }
-</script>
-
 <script lang="ts">
   import Icon from "@iconify/svelte";
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
@@ -17,6 +8,12 @@
   import { cart } from "../store/cartStore";
 
   const dispatch = createEventDispatcher();
+
+  function toggleBodyScroll(show: boolean) {
+    if (typeof document !== "undefined") {
+      document.body.classList.toggle("modal-open", show);
+    }
+  }
 
   const paymentMethods = [
     {
@@ -34,6 +31,7 @@
     title: string;
     price: number;
     slug: string;
+    fileName: string; 
   }>;
 
   let selectedMethod = "";
@@ -144,6 +142,7 @@
       // No need to check data status since this is called after verification
       // Process each cart item
       for (const product of products) {
+        console.log("Downloading file:", product.fileName); // Add this line
         if (downloadStore.checkExistingDownload(product.slug)) {
           // Update existing download with extended expiry and more downloads
           await downloadStore.updateExistingDownload(product.slug, 3);
@@ -153,7 +152,7 @@
           const downloadItem: Download = {
             slug: product.slug,
             title: product.title,
-            fileName: product.fileName,
+            fileName: product.fileName, // Ensure fileName is included
             purchaseDate: new Date().toISOString(),
             price: product.price,
             token: crypto.randomUUID(),

@@ -2,13 +2,11 @@
   import { downloadStore, type Download } from "../store/downloadsStore";
   import Icon from "@iconify/svelte";
   import { toast } from "../lib/toast";
-  import type { Post } from "../content/config";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { saveExportFile, handleImportFile } from "../utils/downloadManager";
 
   // Accept posts as a prop
-  export let posts: Post[] = [];
 
   const ICONS = {
     download: "fluent:arrow-download-24-filled",
@@ -47,13 +45,6 @@
     return acc;
   }, [] as Download[]);
 
-  // Modified findPost to use passed posts
-  function findPost(slug: string) {
-    const post = posts.find((p) => p.slug === slug);
-    console.log("Finding post for slug:", slug, "Found:", post?.data?.fileName); // Debug log
-    return post;
-  }
-
   async function handleDownload(download: Download) {
     const button = document.querySelector(
       `button[data-slug="${download.slug}"]`
@@ -66,8 +57,16 @@
         return;
       }
 
-      console.log("Starting download for:", download.slug);
-      console.log("Available posts:", posts);
+      // Add detailed product information logging
+      console.log("Product Details:", {
+        fileName: download.fileName, 
+        title: download.title,
+        slug: download.slug,
+        price: download.price,
+        purchaseDate: download.purchaseDate,
+        downloads: `${download.downloads}/${download.maxDownloads}`,
+        userId: download.userId
+      });
 
       await downloadStore.handleSecureDownload(
         download,
@@ -79,8 +78,7 @@
           if (progressBar) {
             (progressBar as HTMLElement).style.width = `${progress}%`;
           }
-        },
-        posts
+        }
       );
 
       toast.success("Download completed");
@@ -207,6 +205,11 @@
                 >
                   {download.title}
                 </a>
+
+                <!-- Display file name -->
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  File: {download.fileName}
+                </div>
 
                 <div
                   class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"

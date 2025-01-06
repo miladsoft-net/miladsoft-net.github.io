@@ -1,15 +1,13 @@
 import { writable, get } from 'svelte/store';
 import CryptoJS from 'crypto-js';
-import { SecureDownloader } from '../utils/secureDownloader'; // Adjust the path as necessary
-import type { Post } from '../content/config';
-
+ 
 export interface Download {
   slug: string;
   title: string;
-  fileName: string; // Changed from fileName
+  fileName: string; 
   purchaseDate: string;
   price: number;
-  userId: string; // Changed from token
+  userId: string;  
   downloads: number;
   maxDownloads: number;
 }
@@ -51,92 +49,22 @@ function createDownloadStore() {
 
   return {
     subscribe,
-    addDownload: (download: Download) => update(downloads => {
-      const newDownloads = [...downloads, download];
-      saveToStorage(newDownloads);
-      return newDownloads;
+    addDownload: (download: Download) => update((downloads) => {
+      const updatedDownloads = [...downloads, download];
+      saveToStorage(updatedDownloads);
+      return updatedDownloads;
     }),
-    removeDownload: (slug: string) => update(downloads => {
-      const newDownloads = downloads.filter(d => d.slug !== slug);
-      saveToStorage(newDownloads);
-      return newDownloads;
+    removeDownload: (slug: string) => update((downloads) => {
+      const updatedDownloads = downloads.filter(download => download.slug !== slug);
+      saveToStorage(updatedDownloads);
+      return updatedDownloads;
     }),
-    incrementDownloadCount: (slug: string) => update(downloads => {
-      const newDownloads = downloads.map(d =>
-        d.slug === slug ? { ...d, downloads: (d.downloads || 0) + 1 } : d
-      );
-      saveToStorage(newDownloads);
-      return newDownloads;
-    }),
-    clear: () => {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-      set([]);
-      console.log('Store cleared'); // Debug log
-    },
-    getDownloads: () => get({ subscribe }), // Returns the current value of the store
-
-    updateExistingDownload: (slug: string, additionalDownloads: number = 3) => {
-      return new Promise((resolve) => {
-        update(downloads => {
-          const newDownloads = downloads.map(download => {
-            if (download.slug === slug) {
-              // Calculate new expiry date - add 30 more days from current expiry
-              const currentExpiryDate = new Date(download.purchaseDate).getTime() + (30 * 24 * 60 * 60 * 1000);
-              const newExpiryDate = new Date(currentExpiryDate + (30 * 24 * 60 * 60 * 1000));
-              
-              const updatedDownload = {
-                ...download,
-                maxDownloads: download.maxDownloads + additionalDownloads,
-                purchaseDate: newExpiryDate.toISOString() // Update purchase date to extend expiry
-              };
-              
-              console.log('Updated download:', updatedDownload);
-              return updatedDownload;
-            }
-            return download;
-          });
-
-          saveToStorage(newDownloads);
-          resolve(true);
-          return newDownloads;
-        });
-      });
-    },
-
-    checkExistingDownload: (slug: string): boolean => {
-      // Get current downloads directly
+    checkExistingDownload: (slug: string) => {
       const downloads = get({ subscribe });
-      const exists = downloads.some(d => d.slug === slug);
-      console.log('Checking download exists:', slug, exists); // Debug log
-      return exists;
+      return downloads.some(download => download.slug === slug);
     },
-
-    handleSecureDownload: async (download: Download, onProgress?: (progress: number) => void) => {
-      try {
-        if (download.downloads >= download.maxDownloads) {
-          throw new Error('Maximum download limit reached');
-        }
-    
-        await SecureDownloader.downloadWithProgress(
-          download.fileName,
-          download.userId,
-          onProgress
-        );
-    
-        return update(downloads => {
-          const newDownloads = downloads.map(d =>
-            d.slug === download.slug ? { ...d, downloads: d.downloads + 1 } : d
-          );
-          saveToStorage(newDownloads);
-          return newDownloads;
-        });
-    
-      } catch (error) {
-        console.error('Download failed:', error);
-        throw error;
-      }
+    handleSecureDownload: async (download: Download ) => {
+alert('Secure download is not implemented yet');
     }
   };
 }
