@@ -153,7 +153,7 @@
           const downloadItem: Download = {
             slug: product.slug,
             title: product.title,
-            fileName: `/api/download/${product.slug}`,
+            fileName: product.fileName,
             purchaseDate: new Date().toISOString(),
             price: product.price,
             token: crypto.randomUUID(),
