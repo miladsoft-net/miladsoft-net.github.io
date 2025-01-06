@@ -237,19 +237,12 @@
                     </div>
 
                     <div class="space-y-1">
-                      <div
-                        class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
-                      >
+                      <div class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]">
                         <Icon icon={ICONS.expire} class="w-5 h-5" />
                         <span class="font-medium">Expires</span>
                       </div>
-                      <div
-                        class="text-base font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {new Date(
-                          new Date(download.purchaseDate).getTime() +
-                            30 * 24 * 60 * 60 * 1000
-                        ).toLocaleDateString()}
+                      <div class="text-base font-semibold text-gray-700 dark:text-gray-300">
+                        {new Date(download.expirationDate).toLocaleDateString()}
                       </div>
                     </div>
                   </div>

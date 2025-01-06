@@ -11,7 +11,8 @@ export interface Download {
   downloads: number;
   maxDownloads: number;
   downloadLink?: string;  
-  expirationDate: string;  // Add this new field
+  expirationDate: string;  
+  quantity: number; 
 }
 
 const STORAGE_KEY = 'miladsoft_downloads';
@@ -93,14 +94,16 @@ function createDownloadStore() {
         if (existingDownload) {
           // Add 3 more downloads and extend expiration by 1 month
           const currentExpiration = new Date(existingDownload.expirationDate);
+          const additionalMonths = download.quantity || 1; // Use quantity or default to 1
           const newExpiration = new Date(Math.max(
             currentExpiration.getTime(),
             Date.now()
           ));
-          newExpiration.setMonth(newExpiration.getMonth() + 1);
+          newExpiration.setMonth(newExpiration.getMonth() + additionalMonths);
           
-          existingDownload.maxDownloads += 3;
+          existingDownload.maxDownloads += 3 * additionalMonths;
           existingDownload.expirationDate = newExpiration.toISOString();
+          existingDownload.quantity = (existingDownload.quantity || 1) + (download.quantity || 1);
           
           const updatedDownloads = downloads.map(d => 
             d.slug === download.slug ? existingDownload : d
@@ -110,7 +113,8 @@ function createDownloadStore() {
         } else {
           // Set initial expiration date to 1 month from now
           const expirationDate = new Date();
-          expirationDate.setMonth(expirationDate.getMonth() + 1);
+          const months = download.quantity || 1; // Use quantity or default to 1
+          expirationDate.setMonth(expirationDate.getMonth() + months);
           download.expirationDate = expirationDate.toISOString();
           
           generateDownloadLink(download.userId, download.fileName, download.maxDownloads)
@@ -167,53 +171,46 @@ function createDownloadStore() {
       }
     },
     updateExistingDownload: async (slug: string, additionalDownloads: number) => {
-      return update((downloads) => {
-        const updatedDownloads = downloads.map(d => {
-          if (d.slug === slug) {
-            // Add additional downloads
-            d.maxDownloads += additionalDownloads;
+      const downloads = get({ subscribe });
+      const updatedDownloads = await Promise.all(downloads.map(async (d) => {
+        if (d.slug === slug) {
+          // Add additional downloads
+          d.maxDownloads += additionalDownloads;
+          
+          try {
+            const now = new Date();
+            // Add one month per additional download
+            const additionalTime = additionalDownloads * (30 * 24 * 60 * 60 * 1000);
+            const currentExpiration = new Date(d.expirationDate);
             
-            try {
-              // Safely handle date operations
-              let currentExpiration = new Date(d.expirationDate);
-              
-              // Check if current expiration is valid
-              if (isNaN(currentExpiration.getTime())) {
-                currentExpiration = new Date(); // Fallback to current date if invalid
-              }
-              
-              // Create new expiration date
-              const newExpiration = new Date(Math.max(
-                currentExpiration.getTime(),
-                Date.now()
-              ));
-              
-              // Safely add one month
-              const month = newExpiration.getMonth();
-              newExpiration.setMonth(month + 1);
-              
-              // Ensure valid date before converting to ISO string
-              if (!isNaN(newExpiration.getTime())) {
-                d.expirationDate = newExpiration.toISOString();
-              } else {
-                // Fallback: set to one month from now
-                const fallbackDate = new Date();
-                fallbackDate.setMonth(fallbackDate.getMonth() + 1);
-                d.expirationDate = fallbackDate.toISOString();
-              }
-            } catch (error) {
-              console.error('Date processing error:', error);
-              // Emergency fallback
-              const safeDate = new Date();
-              safeDate.setMonth(safeDate.getMonth() + 1);
-              d.expirationDate = safeDate.toISOString();
-            }
+            // New expiration is the later of: current expiration + additional time, or now + additional time
+            const newExpiration = new Date(
+              Math.max(
+                currentExpiration.getTime() + additionalTime,
+                now.getTime() + additionalTime
+              )
+            );
+            
+            d.downloadLink = await generateDownloadLink(d.userId, d.fileName, d.maxDownloads);
+            d.expirationDate = newExpiration.toISOString();
+            
+          } catch (error) {
+            console.error('Error updating download:', error);
+            const fallbackDate = new Date();
+            fallbackDate.setMonth(fallbackDate.getMonth() + additionalDownloads);
+            d.expirationDate = fallbackDate.toISOString();
           }
-          return d;
+        }
+        return d;
+      }));
+      
+      update((downloads) => {
+        const nonAsyncUpdatedDownloads = updatedDownloads.map((updatedDownload) => {
+          const existingDownload = downloads.find((d) => d.slug === updatedDownload.slug);
+          return existingDownload ? updatedDownload : updatedDownload;
         });
-        
-        saveToStorage(updatedDownloads);
-        return updatedDownloads;
+        saveToStorage(nonAsyncUpdatedDownloads);
+        return nonAsyncUpdatedDownloads;
       });
     }
   };

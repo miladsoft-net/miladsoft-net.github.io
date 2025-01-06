@@ -156,8 +156,9 @@
              userId: crypto.randomUUID(),
              downloads: 0,
              maxDownloads: 3,
-             expirationDate: expirationDate.toISOString()  
-            };
+             expirationDate: expirationDate.toISOString(),
+             quantity: 0
+           };
           await downloadStore.addDownload(downloadItem);
           console.log("Added new download:", product.slug);
         }

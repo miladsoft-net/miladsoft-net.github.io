@@ -8,7 +8,7 @@ draft: false
 isFree: false
 price: 5
 salePrice: 0.05
-fileName: bitcoin.png // مطمئن شوید که اینجا تعریف شده است
+fileName: bitcoin.png 
 ---
 
 # An h1 header
