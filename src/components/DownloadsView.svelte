@@ -57,20 +57,14 @@
         return;
       }
 
-      // Add detailed product information logging
-      console.log("Product Details:", {
-        fileName: download.fileName, 
-        title: download.title,
-        slug: download.slug,
-        price: download.price,
-        purchaseDate: download.purchaseDate,
-        downloads: `${download.downloads}/${download.maxDownloads}`,
-        userId: download.userId,
-        downloadLink: download.downloadLink // Log the download link
-      });
+      const downloadLink = await downloadStore.handleSecureDownload(download);
 
-      // Use the stored download link
-      window.location.href = download.downloadLink;
+      if (!downloadLink) {
+        toast.error("Download link has expired");
+        return;
+      }
+
+      window.location.href = downloadLink;
 
       toast.success("Download started");
     } catch (error) {
