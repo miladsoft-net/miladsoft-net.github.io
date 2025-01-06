@@ -33,7 +33,7 @@
 
   // Create a unique key for each download
   function getUniqueKey(download: Download) {
-    return `${download.slug}-${download.purchaseDate}-${download.token}`;
+    return `${download.slug}-${download.purchaseDate}-${download.userId}`;
   }
 
   // Filter out duplicates based on slug
@@ -190,12 +190,6 @@
                 >
                   {download.title}
                 </a>
-
-                <!-- Display file name -->
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                  File: {download.fileName}
-                </div>
-
                 <div
                   class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"
                 >

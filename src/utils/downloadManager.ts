@@ -87,7 +87,8 @@ function isValidDownload(download: any): download is Download {
          typeof download.fileName === 'string' &&
          typeof download.purchaseDate === 'string' &&
          typeof download.price === 'number' &&
-         typeof download.token === 'string' &&
+         typeof download.userId === 'string' &&
          typeof download.downloads === 'number' &&
-         typeof download.maxDownloads === 'number';
+         typeof download.maxDownloads === 'number' &&
+         (typeof download.downloadLink === 'string' || typeof download.downloadLink === 'undefined');
 }

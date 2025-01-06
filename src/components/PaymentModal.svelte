@@ -149,16 +149,20 @@
           console.log("Extended download for:", product.slug);
         } else {
           // Add new download
-          const downloadItem: Download = {
-            slug: product.slug,
-            title: product.title,
-            fileName: product.fileName, // Ensure fileName is included
-            purchaseDate: new Date().toISOString(),
-            price: product.price,
-            userId: crypto.randomUUID(),
-            downloads: 0,
-            maxDownloads: 3,
-          };
+          const expirationDate = new Date();
+          expirationDate.setMonth(expirationDate.getMonth() + 1);
+          
+           const downloadItem: Download = {
+             slug: product.slug,
+             title: product.title,
+             fileName: product.fileName,
+             purchaseDate: new Date().toISOString(),
+             price: product.price,
+             userId: crypto.randomUUID(),
+             downloads: 0,
+             maxDownloads: 3,
+             expirationDate: expirationDate.toISOString() // Add this line
+            };
           await downloadStore.addDownload(downloadItem);
           console.log("Added new download:", product.slug);
         }

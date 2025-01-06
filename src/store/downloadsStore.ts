@@ -10,7 +10,8 @@ export interface Download {
   userId: string;  
   downloads: number;
   maxDownloads: number;
-  downloadLink?: string; // Add downloadLink property
+  downloadLink?: string;  
+  expirationDate: string;  // Add this new field
 }
 
 const STORAGE_KEY = 'miladsoft_downloads';
@@ -49,7 +50,8 @@ async function createSignature(token: string): Promise<string> {
 }
 
 async function generateDownloadLink(userId: string, fileName: string, downloads: number): Promise<string> {
-  const expiration = Math.floor(Date.now() / 1000) + 30; // 30 seconds
+  const ONE_MONTH_IN_SECONDS = 30 * 24 * 60 * 60; // 30 days in seconds
+  const expiration = Math.floor(Date.now() / 1000) + ONE_MONTH_IN_SECONDS;
   const token = [userId, fileName, expiration, downloads].join(':');
   const signature = await createSignature(token);
 
@@ -85,13 +87,42 @@ function createDownloadStore() {
   return {
     subscribe,
     addDownload: async (download: Download) => {
-      if (!download.downloadLink) {
-        download.downloadLink = await generateDownloadLink(download.userId, download.fileName, download.maxDownloads);
-      }
-      update((downloads) => {
-        const updatedDownloads = [...downloads, download];
-        saveToStorage(updatedDownloads);
-        return updatedDownloads;
+          update((downloads) => {
+        const existingDownload = downloads.find(d => d.slug === download.slug);
+        
+        if (existingDownload) {
+          // Add 3 more downloads and extend expiration by 1 month
+          const currentExpiration = new Date(existingDownload.expirationDate);
+          const newExpiration = new Date(Math.max(
+            currentExpiration.getTime(),
+            Date.now()
+          ));
+          newExpiration.setMonth(newExpiration.getMonth() + 1);
+          
+          existingDownload.maxDownloads += 3;
+          existingDownload.expirationDate = newExpiration.toISOString();
+          
+          const updatedDownloads = downloads.map(d => 
+            d.slug === download.slug ? existingDownload : d
+          );
+          saveToStorage(updatedDownloads);
+          return updatedDownloads;
+        } else {
+          // Set initial expiration date to 1 month from now
+          const expirationDate = new Date();
+          expirationDate.setMonth(expirationDate.getMonth() + 1);
+          download.expirationDate = expirationDate.toISOString();
+          
+          generateDownloadLink(download.userId, download.fileName, download.maxDownloads)
+            .then(link => {
+              download.downloadLink = link;
+              const updatedDownloads = [...downloads, download];
+              saveToStorage(updatedDownloads);
+              set(updatedDownloads);
+            });
+          
+          return downloads;
+        }
       });
     },
     removeDownload: (slug: string) => update((downloads) => {
@@ -105,6 +136,13 @@ function createDownloadStore() {
     },
     handleSecureDownload: async (download: Download) => {
       try {
+        const now = new Date();
+        const expirationDate = new Date(download.expirationDate);
+        
+        if (now > expirationDate) {
+          throw new Error("Download link has expired");
+        }
+        
         if (download.downloads >= download.maxDownloads) {
           throw new Error("Maximum download limit reached");
         }
@@ -127,6 +165,56 @@ function createDownloadStore() {
         console.error("Secure download error:", error);
         throw error;
       }
+    },
+    updateExistingDownload: async (slug: string, additionalDownloads: number) => {
+      return update((downloads) => {
+        const updatedDownloads = downloads.map(d => {
+          if (d.slug === slug) {
+            // Add additional downloads
+            d.maxDownloads += additionalDownloads;
+            
+            try {
+              // Safely handle date operations
+              let currentExpiration = new Date(d.expirationDate);
+              
+              // Check if current expiration is valid
+              if (isNaN(currentExpiration.getTime())) {
+                currentExpiration = new Date(); // Fallback to current date if invalid
+              }
+              
+              // Create new expiration date
+              const newExpiration = new Date(Math.max(
+                currentExpiration.getTime(),
+                Date.now()
+              ));
+              
+              // Safely add one month
+              const month = newExpiration.getMonth();
+              newExpiration.setMonth(month + 1);
+              
+              // Ensure valid date before converting to ISO string
+              if (!isNaN(newExpiration.getTime())) {
+                d.expirationDate = newExpiration.toISOString();
+              } else {
+                // Fallback: set to one month from now
+                const fallbackDate = new Date();
+                fallbackDate.setMonth(fallbackDate.getMonth() + 1);
+                d.expirationDate = fallbackDate.toISOString();
+              }
+            } catch (error) {
+              console.error('Date processing error:', error);
+              // Emergency fallback
+              const safeDate = new Date();
+              safeDate.setMonth(safeDate.getMonth() + 1);
+              d.expirationDate = safeDate.toISOString();
+            }
+          }
+          return d;
+        });
+        
+        saveToStorage(updatedDownloads);
+        return updatedDownloads;
+      });
     }
   };
 }

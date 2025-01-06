@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { class: className, style } = Astro.props;
-const COLLAPSED_HEIGHT = "4rem";
+const COLLAPSED_HEIGHT = "5rem";
 const ITEMS_THRESHOLD = 3; // Show More button after 3 items
 ---
 
@@ -73,9 +73,7 @@ const ITEMS_THRESHOLD = 3; // Show More button after 3 items
   const cartTotalElement = document.getElementById("cart-total");
   const checkoutButton = document.getElementById("checkout-button");
   const moreButton = document.getElementById("more-button");
-
   let isExpanded = false;
-  const ITEMS_THRESHOLD = 3;
 
   moreButton?.addEventListener("click", () => {
     isExpanded = !isExpanded;
@@ -83,18 +81,11 @@ const ITEMS_THRESHOLD = 3; // Show More button after 3 items
   });
 
   function updateCartDisplay() {
-    if (
-      !cartItemsElement ||
-      !cartTotalElement ||
-      !checkoutButton ||
-      !moreButton
-    )
-      return;
+    if (!cartItemsElement || !cartTotalElement || !checkoutButton || !moreButton) return;
 
     cart.subscribe((items) => {
       if (items.length === 0) {
-        cartItemsElement.innerHTML =
-          '<div class="text-sm text-neutral-500 dark:text-neutral-400">Cart is empty</div>';
+        cartItemsElement.innerHTML = '<div class="text-sm text-neutral-500 dark:text-neutral-400">Cart is empty</div>';
         cartTotalElement.textContent = "$0.00";
         checkoutButton.classList.add("opacity-50", "cursor-not-allowed");
         moreButton.classList.add("hidden");
@@ -102,38 +93,30 @@ const ITEMS_THRESHOLD = 3; // Show More button after 3 items
       }
 
       checkoutButton.classList.remove("opacity-50", "cursor-not-allowed");
-      const total = items.reduce(
-        (sum, item) => sum + (item.salePrice || item.price),
-        0
-      );
+      const total = items.reduce((sum, item) => sum + (item.salePrice || item.price), 0);
       cartTotalElement.textContent = `$${total.toFixed(2)}`;
 
-      // Show all items or just the first ITEMS_THRESHOLD
-      const displayItems = isExpanded ? items : items.slice(0, ITEMS_THRESHOLD);
+      // Only slice if there are more than 3 items and not expanded
+      const displayItems = (items.length > 3 && !isExpanded) ? items.slice(0, 3) : items;
 
       cartItemsElement.innerHTML = displayItems
-        .map(
-          (item) => `
-                        <a href="/posts/${item.slug}/" class="block w-full h-10 rounded-lg bg-none hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition-all pl-2 hover:pl-3">
-                            <div class="flex justify-between items-center h-full">
-                                <span class="truncate flex-1 text-neutral-700 hover:text-[var(--primary)] dark:text-neutral-300 dark:hover:text-[var(--primary)]">
-                                    ${item.title}
-                                </span>
-                                <span class="font-medium ml-4 mr-2 min-w-[4rem] text-right text-neutral-700 hover:text-[var(--primary)] dark:text-neutral-300 dark:hover:text-[var(--primary)]">
-                                    $${(item.salePrice || item.price).toFixed(2)}
-                                </span>
-                            </div>
-                        </a>
-                    `
-        )
-        .join("");
+        .map((item) => `
+          <a href="/posts/${item.slug}/" class="block w-full h-10 rounded-lg bg-none hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition-all pl-2 hover:pl-3">
+            <div class="flex justify-between items-center h-full">
+              <span class="truncate flex-1 text-neutral-700 hover:text-[var(--primary)] dark:text-neutral-300 dark:hover:text-[var(--primary)]">
+                ${item.title}
+              </span>
+              <span class="font-medium ml-4 mr-2 min-w-[4rem] text-right text-neutral-700 hover:text-[var(--primary)] dark:text-neutral-300 dark:hover:text-[var(--primary)]">
+                $${(item.salePrice || item.price).toFixed(2)}
+              </span>
+            </div>
+          </a>
+        `).join("");
 
-      // Show/Hide More button
-      if (items.length > ITEMS_THRESHOLD) {
+      // Only show More button if items exceed 3
+      if (items.length > 3) {
         moreButton.classList.remove("hidden");
-        moreButton.textContent = isExpanded
-          ? "Show Less"
-          : `Show More (${items.length - ITEMS_THRESHOLD})`;
+        moreButton.textContent = isExpanded ? "Show Less" : `Show More (${items.length - 3})`;
       } else {
         moreButton.classList.add("hidden");
       }
