@@ -65,23 +65,14 @@
         price: download.price,
         purchaseDate: download.purchaseDate,
         downloads: `${download.downloads}/${download.maxDownloads}`,
-        userId: download.userId
+        userId: download.userId,
+        downloadLink: download.downloadLink // Log the download link
       });
 
-      await downloadStore.handleSecureDownload(
-        download,
-        (progress) => {
-          console.log(`Download progress: ${progress}%`);
-          const progressBar = document.querySelector(
-            `#progress-${download.slug}`
-          );
-          if (progressBar) {
-            (progressBar as HTMLElement).style.width = `${progress}%`;
-          }
-        }
-      );
+      // Use the stored download link
+      window.location.href = download.downloadLink;
 
-      toast.success("Download completed");
+      toast.success("Download started");
     } catch (error) {
       console.error("Download error:", error);
       toast.error(

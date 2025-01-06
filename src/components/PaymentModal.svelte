@@ -155,11 +155,11 @@
             fileName: product.fileName, // Ensure fileName is included
             purchaseDate: new Date().toISOString(),
             price: product.price,
-            token: crypto.randomUUID(),
+            userId: crypto.randomUUID(),
             downloads: 0,
             maxDownloads: 3,
           };
-          downloadStore.addDownload(downloadItem);
+          await downloadStore.addDownload(downloadItem);
           console.log("Added new download:", product.slug);
         }
       }
