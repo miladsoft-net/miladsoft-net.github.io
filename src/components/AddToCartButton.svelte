@@ -1,31 +1,31 @@
 <script lang="ts">
-  import { cart } from '../store/cartStore'
-  import type { CartItem } from '../store/cartStore'
-  import { toast } from '../lib/toast'
-  
-  export let item: CartItem
-  
-  $: isInCart = $cart.some(i => i.slug === item.slug)
+  import { cart } from "../store/cartStore";
+  import type { CartItem } from "../store/cartStore";
+  import { toast } from "../lib/toast";
+
+  export let item: CartItem;
+
+  $: isInCart = $cart.some((i) => i.slug === item.slug);
 
   function handleClick() {
     try {
       if (isInCart) {
-        window.location.href = '/cart/'
+        window.location.href = "/cart/";
       } else {
         const cartItem: CartItem = {
           slug: item.slug,
           title: item.title,
           price: item.price,
           salePrice: item.salePrice,
-          downloadUrl: item.downloadUrl,
-          addedAt: new Date().toISOString()
-        }
-        cart.addItem(cartItem)
-        toast.success(`${item.title} added to cart`)
+          fileName: item.fileName,
+          addedAt: new Date().toISOString(),
+        };
+        cart.addItem(cartItem);
+        toast.success(`${item.title} added to cart`);
       }
     } catch (error) {
-      console.error('Failed to add item to cart:', error)
-      toast.error('Failed to add item to cart')
+      console.error("Failed to add item to cart:", error);
+      toast.error("Failed to add item to cart");
     }
   }
 </script>
@@ -35,11 +35,13 @@
   class:in-cart={isInCart}
   on:click={handleClick}
 >
-  <span class="text-black/70 dark:text-white/70">{isInCart ? 'Go to Cart' : 'Add to Cart'}</span> 
+  <span class="text-black/70 dark:text-white/70"
+    >{isInCart ? "Go to Cart" : "Add to Cart"}</span
+  >
 </button>
 
 <style>
   .in-cart {
-    @apply bg-black/[0.3] ;
+    @apply bg-black/[0.3];
   }
 </style>

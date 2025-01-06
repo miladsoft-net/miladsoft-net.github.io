@@ -52,7 +52,7 @@
 
       // Process each cart item
       for (const item of $cart) {
-        if (!item.downloadUrl) continue;
+        if (!item.fileName) continue;
 
         const token = generateToken();
         if (!token) {
@@ -67,7 +67,7 @@
             const downloadItem: Download = {
               slug: item.slug,
               title: item.title,
-              downloadUrl: item.downloadUrl,
+              fileName: item.fileName,
               purchaseDate: timestamp,
               price: item.salePrice || item.price,
               token,
@@ -103,7 +103,7 @@
     }
   }
 
-  // Prepare products info for PaymentModal without downloadUrl
+  // Prepare products info for PaymentModal without fileName
   $: products = $cart.map((item) => ({
     title: item.title,
     price: item.salePrice || item.price,

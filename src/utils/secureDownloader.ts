@@ -1,48 +1,58 @@
-import CryptoJS from 'crypto-js';
+const WORKER_URL = import.meta.env.CLOUDFLARE_WORKER_URL;
+const SECRET_KEY = import.meta.env.SECRET_KEY;
 
 export class SecureDownloader {
   private static CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
-  static generateSecureUrl(baseUrl: string, token: string): string {
-    const url = new URL(baseUrl);
-    url.searchParams.append('token', token);
-    return url.toString();
+  private static async createSignature(token: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(SECRET_KEY);
+    const messageData = encoder.encode(token);
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      keyData,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const signature = await crypto.subtle.sign("HMAC", key, messageData);
+    return btoa(String.fromCharCode(...new Uint8Array(signature)));
   }
 
-  private static getOriginalFilename(url: string): string {
-    try {
-      const urlPath = new URL(url).pathname;
-      const filename = urlPath.split('/').pop() || '';
-      return filename;
-    } catch (error) {
-      console.error('Error extracting filename from URL:', error);
-      return 'download.zip';
-    }
+  static async generateSecureUrl(fileName: string, userId: string): Promise<string> {
+    const expiration = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+    const downloads = 1;
+    
+    // Create token and signature
+    const token = [userId, fileName, expiration, downloads].join(':');
+    const signature = await this.createSignature(token);
+
+    // Build URL with parameters
+    const params = new URLSearchParams({
+      file: fileName,
+      userId: userId,
+      signature: signature,
+      downloads: downloads.toString(),
+      expires: expiration.toString()
+    });
+
+    return `${WORKER_URL}?${params.toString()}`;
   }
 
   static async downloadWithProgress(
-    url: string,
-    suggestedFilename: string,
+    fileName: string,
+    userId: string,
     onProgress?: (progress: number) => void
   ): Promise<void> {
-    console.log('Starting download from:', url);
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include', // Include credentials if needed
-        headers: {
-          'Accept': 'application/octet-stream',
-        }
-      });
+      const secureUrl = await this.generateSecureUrl(fileName, userId);
+      const response = await fetch(secureUrl);
 
       if (!response.ok) {
-        console.error('Download failed with status:', response.status);
-        console.error('Response:', await response.text());
         throw new Error(`Download failed: ${response.statusText}`);
       }
-      
-      // Get original filename from URL
-      const originalFilename = this.getOriginalFilename(url);
 
       const contentLength = Number(response.headers.get('content-length'));
       const reader = response.body?.getReader();
@@ -64,19 +74,19 @@ export class SecureDownloader {
       }
 
       const blob = new Blob(chunks);
-      const downloadUrl = URL.createObjectURL(blob);
+      const fileName = URL.createObjectURL(blob);
       
       const a = document.createElement('a');
-      a.href = downloadUrl;
-      // Use the original filename from the URL instead of the suggested one
-      a.download = originalFilename;
+      a.href = fileName;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       
-      URL.revokeObjectURL(downloadUrl);
+      URL.revokeObjectURL(fileName);
+
     } catch (error) {
-      console.error('Download error details:', error);
+      console.error('Download error:', error);
       throw error;
     }
   }

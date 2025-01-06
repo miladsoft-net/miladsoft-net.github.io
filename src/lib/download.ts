@@ -11,15 +11,15 @@ export async function downloadFile(url: string, filename: string, token: string)
     }
 
     const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
+    const fileName = window.URL.createObjectURL(blob);
 
     const link = document.createElement('a');
-    link.href = downloadUrl;
+    link.href = fileName;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+    window.URL.revokeObjectURL(fileName);
 
     return true;
   } catch (error) {

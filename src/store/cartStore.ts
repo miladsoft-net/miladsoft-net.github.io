@@ -5,7 +5,7 @@ export interface CartItem {
   title: string;
   price: number;
   salePrice?: number;
-  downloadUrl: string;
+  fileName: string;
   productUrl: string;
   addedAt?: string;
   purchased?: boolean;

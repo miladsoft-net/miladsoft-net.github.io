@@ -6,10 +6,10 @@ import type { Post } from '../content/config';
 export interface Download {
   slug: string;
   title: string;
-  downloadUrl: string;
+  fileName: string; // Changed from fileName
   purchaseDate: string;
   price: number;
-  token: string;
+  userId: string; // Changed from token
   downloads: number;
   maxDownloads: number;
 }
@@ -113,50 +113,21 @@ function createDownloadStore() {
       return exists;
     },
 
-    handleSecureDownload: async (download: Download, onProgress?: (progress: number) => void, posts?: Post[]) => {
+    handleSecureDownload: async (download: Download, onProgress?: (progress: number) => void) => {
       try {
-        console.log('Starting secure download process...', { download, postsAvailable: !!posts });
-        
-        if (!download || !download.slug) {
-          throw new Error('Invalid download object');
+        if (download.downloads >= download.maxDownloads) {
+          throw new Error('Maximum download limit reached');
         }
     
-        if (!posts || posts.length === 0) {
-          throw new Error('Posts array is empty or undefined');
-        }
-    
-        const post = posts.find(p => p.slug === download.slug);
-        if (!post) {
-          throw new Error(`Post not found for slug: ${download.slug}`);
-        }
-    
-        const downloadUrl = post.data?.downloadUrl || download.downloadUrl;
-        if (!downloadUrl) {
-          throw new Error('Download URL is missing');
-        }
-    
-        if (!download.token) {
-          throw new Error('Download token is missing');
-        }
-    
-        console.log('Generating secure URL for:', downloadUrl);
-        const secureUrl = SecureDownloader.generateSecureUrl(downloadUrl, download.token);
-        
-        console.log('Starting file download...');
         await SecureDownloader.downloadWithProgress(
-          secureUrl,
-          download.title, // This will be ignored in favor of the original filename
-          (progress) => {
-            console.log(`Download progress: ${progress}%`);
-            onProgress?.(progress);
-          }
+          download.fileName,
+          download.userId,
+          onProgress
         );
     
-        console.log('Download completed successfully');
-        
         return update(downloads => {
           const newDownloads = downloads.map(d =>
-            d.slug === download.slug ? { ...d, downloads: (d.downloads || 0) + 1 } : d
+            d.slug === download.slug ? { ...d, downloads: d.downloads + 1 } : d
           );
           saveToStorage(newDownloads);
           return newDownloads;

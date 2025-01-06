@@ -9,7 +9,7 @@ category: 'Examples'
 draft: false
 isFree: false
 price: 0.09
-downloadUrl: https://miladsoft.net/products/file.zip
+fileName: https://miladsoft.net/products/file.zip
 ---
 
 ## GitHub Repository Cards

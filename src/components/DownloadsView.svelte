@@ -50,12 +50,7 @@
   // Modified findPost to use passed posts
   function findPost(slug: string) {
     const post = posts.find((p) => p.slug === slug);
-    console.log(
-      "Finding post for slug:",
-      slug,
-      "Found:",
-      post?.data?.downloadUrl
-    ); // Debug log
+    console.log("Finding post for slug:", slug, "Found:", post?.data?.fileName); // Debug log
     return post;
   }
 
@@ -71,14 +66,16 @@
         return;
       }
 
-      console.log('Starting download for:', download.slug);
-      console.log('Available posts:', posts);
+      console.log("Starting download for:", download.slug);
+      console.log("Available posts:", posts);
 
       await downloadStore.handleSecureDownload(
-        download, 
+        download,
         (progress) => {
           console.log(`Download progress: ${progress}%`);
-          const progressBar = document.querySelector(`#progress-${download.slug}`);
+          const progressBar = document.querySelector(
+            `#progress-${download.slug}`
+          );
           if (progressBar) {
             (progressBar as HTMLElement).style.width = `${progress}%`;
           }
@@ -89,7 +86,9 @@
       toast.success("Download completed");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to download file");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to download file"
+      );
     } finally {
       if (button) button.disabled = false;
     }

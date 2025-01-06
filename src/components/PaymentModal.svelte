@@ -153,7 +153,7 @@
           const downloadItem: Download = {
             slug: product.slug,
             title: product.title,
-            downloadUrl: `/api/download/${product.slug}`,
+            fileName: `/api/download/${product.slug}`,
             purchaseDate: new Date().toISOString(),
             price: product.price,
             token: crypto.randomUUID(),
@@ -219,10 +219,10 @@
   }
 
   function showSuccessAnimation() {
-  const successMessage = document.createElement("div");
-  successMessage.className =
-    "fixed inset-0 flex items-center justify-center bg-white/30 dark:bg-black/30 backdrop-blur-lg z-50";
-  successMessage.innerHTML = `
+    const successMessage = document.createElement("div");
+    successMessage.className =
+      "fixed inset-0 flex items-center justify-center bg-white/30 dark:bg-black/30 backdrop-blur-lg z-50";
+    successMessage.innerHTML = `
     <div class="text-center p-8 transform scale-up bg-white/70 dark:bg-black/70 rounded-lg backdrop-blur-lg shadow-lg">
       <div class="success-checkmark">
         <div class="check-icon">
@@ -239,9 +239,8 @@
       </div>
     </div>
   `;
-  document.body.appendChild(successMessage);
-}
-
+    document.body.appendChild(successMessage);
+  }
 
   function generateSecureToken() {
     return crypto.randomUUID();
@@ -731,7 +730,7 @@
   }
 
   :global(.dark) .custom-scrollbar {
-    scrollbar-color: rgba(0, 0, 0,0.5)transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.5) transparent;
   }
 
   :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {

@@ -84,7 +84,7 @@ function isValidDownload(download: any): download is Download {
   return typeof download === 'object' &&
          typeof download.slug === 'string' &&
          typeof download.title === 'string' &&
-         typeof download.downloadUrl === 'string' &&
+         typeof download.fileName === 'string' &&
          typeof download.purchaseDate === 'string' &&
          typeof download.price === 'number' &&
          typeof download.token === 'string' &&

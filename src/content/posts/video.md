@@ -6,7 +6,7 @@ tags: [Example, Video]
 category: Examples
 draft: false
 isFree: true
-downloadUrl: https://miladsoft.net/products/file.zip
+fileName: https://miladsoft.net/products/file.zip
 ---
 
 Just copy the embed code from YouTube or other platforms, and paste it in the markdown file.
