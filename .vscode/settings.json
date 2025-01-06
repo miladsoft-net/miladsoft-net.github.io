@@ -24,5 +24,8 @@
   },
   "cSpell.words": [
     "pagefind"
-  ]
+  ],
+  "[astro]": {
+    "editor.defaultFormatter": "astro-build.astro-vscode"
+  }
 }
