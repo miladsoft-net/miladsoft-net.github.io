@@ -74,7 +74,7 @@ export const profileConfig: ProfileConfig = {
     {
       name: 'Nostr',
       icon: 'mdi:lightning-bolt',  // از آیکن رعد و برق از مجموعه Material Design Icons استفاده می‌کنیم
-      url: '#',
+      url: '/nostr/',
     },
     {
       name: 'GitHub',

@@ -42,5 +42,5 @@ Our platform specializes in:
 
 - GitHub: [github.com/miladsoft-net](https://github.com/miladsoft-net)
 - Twitter: [twitter.com/miladsoft](https://twitter.com/miladsoft)
-- Nostr: [miladsoft.net/nostr](https://miladsoft.net/nostr)
+- Nostr: [miladsoft.net/nostr](/nostr/)
 
