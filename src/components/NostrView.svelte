@@ -129,7 +129,6 @@
 </script>
 
 <div class="container">
-  <h2>Angor Posts on Nostr</h2>
   <div class="post-results">
     {#each posts as post}
       {@const project = keys.find(p => p.nostrPubKey === post.pubkey)}
