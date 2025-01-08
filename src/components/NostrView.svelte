@@ -129,11 +129,11 @@
 </script>
 
 <div class="container">
-  <div class="post-results grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="post-results grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
     {#each posts as post}
       {@const project = keys.find(p => p.nostrPubKey === post.pubkey)}
       {@const metadata = project?.metadata || {}}
-      <div class="post-card bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+      <div class="post-card bg-[var(--page-bg)] dark:bg-white/10 shadow-lg rounded-lg overflow-hidden">
         <div class="post-header flex items-center p-4">
           <img
             src={metadata.picture || './assets/default-avatar.png'}
@@ -159,7 +159,7 @@
       </div>
     {/each}
   </div>
-  <button on:click={loadMorePosts} class="load-more mt-8 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+  <button on:click={loadMorePosts} class="load-more mt-8 bg-[var(--primary)] text-white py-2 px-4 rounded-lg hover:bg-[var(--primary)] transition">
     Load More
   </button>
 </div>
@@ -192,14 +192,11 @@
     width: 100%;
     padding: 10px;
     margin-top: 20px;
-    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
   }
 
-  .load-more:hover {
-    background-color: #0056b3;
-  }
+ 
 </style>
