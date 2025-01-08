@@ -52,6 +52,10 @@ export const navBarConfig: NavBarConfig = {
       url: '/downloads/',
     },
     {
+      name: 'Nostr',
+      url: '/nostr/',
+    },
+    {
       name: 'GitHub',
       url: 'https://github.com/miladsoft-net',   
       external: true,                          
