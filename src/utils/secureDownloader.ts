@@ -2,8 +2,7 @@ const WORKER_URL = import.meta.env.CLOUDFLARE_WORKER_URL;
 const SECRET_KEY = import.meta.env.SECRET_KEY;
 
 export class SecureDownloader {
-  private static CHUNK_SIZE = 1024 * 1024; // 1MB chunks
-
+ 
   private static async createSignature(token: string): Promise<string> {
     const encoder = new TextEncoder();
     const keyData = encoder.encode(SECRET_KEY);
@@ -74,16 +73,16 @@ export class SecureDownloader {
       }
 
       const blob = new Blob(chunks);
-      const fileName = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
       
       const a = document.createElement('a');
-      a.href = fileName;
+      a.href = objectUrl;
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       
-      URL.revokeObjectURL(fileName);
+      URL.revokeObjectURL(objectUrl);
 
     } catch (error) {
       console.error('Download error:', error);
