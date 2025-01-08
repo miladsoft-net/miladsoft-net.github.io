@@ -53,27 +53,28 @@ export const navBarConfig: NavBarConfig = {
     },
     {
       name: 'GitHub',
-      url: 'https://github.com/miladsoft-net',     // Internal links should not include the base path, as it is automatically added
-      external: true,                               // Show an external link icon and will open in a new tab
+      url: 'https://github.com/miladsoft-net',   
+      external: true,                          
+
     },
   ],
 }
 
 export const profileConfig: ProfileConfig = {
-  avatar: 'assets/images/logo.svg',  // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+  avatar: 'assets/images/logo.svg', 
+
   name: 'Miladsoft.Net',
   bio: 'Miladsoft provides coding tutorials and source code, with Bitcoin payments and no signup.',
   links: [
     {
       name: 'Twitter',
-      icon: 'fa6-brands:twitter',       // Visit https://icones.js.org/ for icon codes
-                                        // You will need to install the corresponding icon set if it's not already included
-                                        // `pnpm add @iconify-json/<icon-set-name>`
+      icon: 'fa6-brands:twitter',     
+
       url: 'https://twitter.com',
     },
     {
       name: 'Nostr',
-      icon: 'mdi:lightning-bolt',  // از آیکن رعد و برق از مجموعه Material Design Icons استفاده می‌کنیم
+      icon: 'mdi:lightning-bolt',
       url: '/nostr/',
     },
     {
