@@ -136,9 +136,10 @@
       <div class="post-card" data-pubkey={post.pubkey}>
         <div class="post-header">
           <img
-            src={metadata.picture || '/nostr/default-avatar.png'}
+            src={metadata.picture || './assets/default-avatar.png'}
+            alt={`Profile picture of ${metadata.name || 'user'}`}
             class="profile-image"
-            on:error={(e) => { const target = e.target as HTMLImageElement; if (target) target.src = '/nostr/default-avatar.png'; }}
+            on:error={(e) => { const target = e.target as HTMLImageElement; if (target) target.src = './assets/default-avatar.png'; }}
           />
           <div class="author-info">
             <div class="author" data-pubkey={post.pubkey}>
