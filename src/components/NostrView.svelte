@@ -7,7 +7,7 @@
   let posts: Post[] = [];
   let keys: Key[] = [];
   let relayUrls: string[] = [];
-  let postsToLoad = 10;
+  let postsToLoad = 9;
   let currentPage = 1;
   const loadedPosts = new Set<string>();
 
@@ -129,55 +129,55 @@
 </script>
 
 <div class="container">
-  <div class="post-results">
+  <div class="post-results grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each posts as post}
       {@const project = keys.find(p => p.nostrPubKey === post.pubkey)}
       {@const metadata = project?.metadata || {}}
-      <div class="post-card" data-pubkey={post.pubkey}>
-        <div class="post-header">
+      <div class="post-card bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+        <div class="post-header flex items-center p-4">
           <img
             src={metadata.picture || './assets/default-avatar.png'}
             alt={`Profile picture of ${metadata.name || 'user'}`}
-            class="profile-image"
+            class="profile-image w-12 h-12 rounded-full mr-4"
             on:error={(e) => { const target = e.target as HTMLImageElement; if (target) target.src = './assets/default-avatar.png'; }}
           />
           <div class="author-info">
-            <div class="author" data-pubkey={post.pubkey}>
+            <div class="author font-semibold text-lg text-gray-800 dark:text-gray-200" data-pubkey={post.pubkey}>
               {metadata.name || prettyFormatKey(post.pubkey)}
             </div>
             {#if metadata.nip05}
-              <div class="nip05">{metadata.nip05}</div>
+              <div class="nip05 text-sm text-gray-600 dark:text-gray-400">{metadata.nip05}</div>
             {/if}
           </div>
         </div>
-        <div class="post-content">
+        <div class="post-content p-4 text-gray-700 dark:text-gray-300">
           {@html parseContent(post.content)}
         </div>
-        <div class="post-footer">Created At: {dateToString(post.created_at)}</div>
+        <div class="post-footer p-4 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+          Created At: {dateToString(post.created_at)}
+        </div>
       </div>
     {/each}
   </div>
-  <button on:click={loadMorePosts} class="load-more">Load More</button>
+  <button on:click={loadMorePosts} class="load-more mt-8 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+    Load More
+  </button>
 </div>
 
 <style>
   .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
   }
 
   .post-card {
-    border: 1px solid #ddd;
-    margin-bottom: 20px;
-    padding: 15px;
-    border-radius: 8px;
+    transition: transform 0.3s, box-shadow 0.3s;
   }
 
-  .post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+  .post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
 
   .profile-image {
@@ -185,22 +185,6 @@
     height: 50px;
     border-radius: 25px;
     margin-right: 10px;
-  }
-
-  .author-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .nip05 {
-    font-size: 0.8em;
-    color: #666;
-  }
-
-  .post-footer {
-    margin-top: 10px;
-    font-size: 0.8em;
-    color: #666;
   }
 
   .load-more {
