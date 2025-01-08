@@ -1,125 +1,117 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
-  let posts = [];
-  let keys = [];
-  let relayUrls = [];
-  let metadataFetched = {};
-  let postsToLoad = 10;
+  type Post = { pubkey: string, content: string, created_at: number, kind: number };
+  type Key = { nostrPubKey: string, metadata?: { picture?: string, name?: string, nip05?: string } };
 
-  onMount(async () => {
-    await Promise.all([loadkeys(), loadRelays()]);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  let posts: Post[] = [];
+  let keys: Key[] = [];
+  let relayUrls: string[] = [];
+  let postsToLoad = 10;
+  let currentPage = 1;
+  const loadedPosts = new Set<string>();
+
+  onMount(() => {
+    const init = async () => {
+      await Promise.all([loadKeys(), loadRelays()]);
+    };
+    init();
   });
 
-  async function loadkeys() {
-    const response = await fetch('/nostr/keys.json');
-    keys = await response.json();
-    fetchAllPosts();
+  async function loadKeys() {
+    try {
+      const response = await fetch('/nostr/keys.json');
+      keys = await response.json();
+      fetchAllPosts();
+    } catch (error) {
+      console.error('Error loading keys:', error);
+    }
   }
 
   async function loadRelays() {
-    const response = await fetch('/nostr/relays.json');
-    const data = await response.json();
-    relayUrls = data.relays;
-    fetchAllPosts();
+    try {
+      const response = await fetch('/nostr/relays.json');
+      const data = await response.json();
+      relayUrls = data.relays;
+      fetchAllPosts();
+    } catch (error) {
+      console.error('Error loading relays:', error);
+    }
   }
 
   function fetchAllPosts() {
     if (keys.length && relayUrls.length) {
-      keys.forEach(project => {
+      keys.forEach((project) => {
         fetchPosts(project.nostrPubKey, Date.now() / 1000, postsToLoad);
       });
     }
   }
 
-  function fetchPosts(pubkey, until, limit) {
-    relayUrls.forEach(relayUrl => {
+  function fetchPosts(pubkey: string, until: number, limit: number) {
+    relayUrls.forEach((relayUrl) => {
       const socket = new WebSocket(relayUrl);
-
       socket.addEventListener('open', () => {
-        socket.send(JSON.stringify([
-          "REQ",
-          `metadata-${pubkey}`,
-          {
-            "kinds": [0],
-            "authors": [pubkey]
-          }
-        ]));
-
-        socket.send(JSON.stringify([
-          "REQ",
-          `posts-${pubkey}`,
-          {
-            "kinds": [1],
-            "authors": [pubkey],
-            "until": until,
-            "limit": limit
-          }
-        ]));
+        socket.send(JSON.stringify(["REQ", `metadata-${pubkey}`, { kinds: [0], authors: [pubkey] }]));
+        socket.send(JSON.stringify(["REQ", `posts-${pubkey}`, { kinds: [1], authors: [pubkey], until, limit }]));
       });
-
-      socket.addEventListener('message', async event => {
-        try {
-          const [type, subId, eventData] = JSON.parse(event.data);
-          if (type === 'EVENT') {
-            if (eventData.kind === 0) {
-              handleMetadataEvent(eventData.pubkey, eventData.content);
-            } else if (eventData.kind === 1) {
-              posts = [...posts, eventData].sort((a, b) => b.created_at - a.created_at);
-            }
-          }
-        } catch (error) {
-          console.error('Error processing event:', error);
-        }
-      });
+      socket.addEventListener('message', handleSocketMessage);
     });
   }
 
-  function handleMetadataEvent(pubkey, content) {
+  function handleSocketMessage(event: MessageEvent) {
+    try {
+      const [type, subId, eventData] = JSON.parse(event.data);
+      if (type === 'EVENT') {
+        if (eventData.kind === 0) {
+          handleMetadataEvent(eventData.pubkey, eventData.content);
+        } else if (eventData.kind === 1 && !loadedPosts.has(eventData.id)) {
+          loadedPosts.add(eventData.id);
+          posts = [...posts, eventData].sort((a, b) => b.created_at - a.created_at);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing event:', error);
+    }
+  }
+
+  function handleMetadataEvent(pubkey: string, content: string) {
     try {
       const metadata = JSON.parse(content);
-      const project = keys.find(p => p.nostrPubKey === pubkey);
+      const project = keys.find((p) => p.nostrPubKey === pubkey);
       if (project) {
-        let picture = metadata.picture || '';
-        if (picture.startsWith('data:image')) {
-          picture = picture;
-        } else if (!picture.startsWith('http')) {
-          picture = '/nostr/default-avatar.png';
-        }
-        project.metadata = { ...metadata, picture };
-        posts = [...posts]; // trigger re-render
+        project.metadata = { ...metadata, picture: formatPicture(metadata.picture) };
+        posts = [...posts];
       }
     } catch (error) {
       console.error('Error parsing metadata:', error);
     }
   }
 
-  function handleScroll() {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-      //loadMorePosts();
+  function formatPicture(picture?: string): string {
+    if (picture && picture.startsWith('data:image')) {
+      return picture;
+    } else if (picture && !picture.startsWith('http')) {
+      return '/nostr/default-avatar.png';
     }
+    return picture || '/nostr/default-avatar.png';
   }
 
   function loadMorePosts() {
-    if (posts.length > 0) {
-      const lastTimestamp = posts[posts.length - 1].created_at;
-      keys.forEach(project => {
-        fetchPosts(project.nostrPubKey, lastTimestamp, postsToLoad);
-      });
-    }
+    currentPage++;
+    keys.forEach((project) => {
+      fetchPosts(project.nostrPubKey, Date.now() / 1000, postsToLoad * currentPage);
+    });
   }
 
-  function parseContent(content) {
+  function parseContent(content: string): string {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return content.replace(urlRegex, url => {
-      if (url.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+    return content.replace(urlRegex, (url) => {
+      if (/\.(jpeg|jpg|gif|png)$/i.test(url)) {
         return `<img src="${url}" alt="Image" style="max-width: 100%; height: auto;">`;
-      } else if (url.match(/\.(mp4|webm|ogg)$/) != null) {
+      } else if (/\.(mp4|webm|ogg)$/i.test(url)) {
         return `<video controls style="max-width: 100%; height: auto;">
-                    <source src="${url}" type="video/mp4">
-                    Your browser does not support the video tag.
+                  <source src="${url}" type="video/mp4">
+                  Your browser does not support the video tag.
                 </video>`;
       } else {
         return `<a href="${url}" target="_blank">${url}</a>`;
@@ -127,11 +119,11 @@
     });
   }
 
-  function prettyFormatKey(key) {
-    return key.slice(0, 4) + "..." + key.slice(-4);
+  function prettyFormatKey(key: string): string {
+    return `${key.slice(0, 4)}...${key.slice(-4)}`;
   }
 
-  function dateToString(unixTimestamp) {
+  function dateToString(unixTimestamp: number): string {
     return new Date(unixTimestamp * 1000).toLocaleString();
   }
 </script>
@@ -146,9 +138,8 @@
         <div class="post-header">
           <img
             src={metadata.picture || '/nostr/default-avatar.png'}
-            alt="Profile Picture"
             class="profile-image"
-            on:error={(e) => e.target.src = '/nostr/default-avatar.png'}
+            on:error={(e) => { const target = e.target as HTMLImageElement; if (target) target.src = '/nostr/default-avatar.png'; }}
           />
           <div class="author-info">
             <div class="author" data-pubkey={post.pubkey}>
