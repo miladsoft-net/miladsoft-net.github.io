@@ -1,10 +1,8 @@
 {
   "relays": [
-    "wss://relay.damus.io",
-    "wss://nos.lol",
     "wss://relay.nostr.band",
+    "wss://nos.lol",
     "wss://nostr.mom",
-    "wss://relay.snort.social",
-    "wss://relay.current.fyi"
+    "wss://relay.snort.social"
   ]
 }
