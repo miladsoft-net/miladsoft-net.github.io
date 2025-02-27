@@ -12,6 +12,7 @@
     metadata?: { picture?: string; name?: string; nip05?: string };
   };
 
+  let mounted = false;
   let posts: Post[] = [];
   let keys: Key[] = [];
   const activeConnections = new Map<string, WebSocket>();
@@ -24,16 +25,21 @@
   let lastFetchTime = Date.now() / 1000;
 
   onMount(() => {
+    mounted = true;
     const init = async () => {
-      await Promise.all([loadKeys(), loadRelays()]);
-      startPolling();
+      if (typeof window !== "undefined") {
+        await Promise.all([loadKeys(), loadRelays()]);
+        startPolling();
+      }
     };
     init();
   });
 
   onDestroy(() => {
-    stopPolling();
-    closeAllConnections();
+    if (mounted) {
+      stopPolling();
+      closeAllConnections();
+    }
   });
 
   async function loadKeys() {
@@ -92,14 +98,21 @@
     activeConnections.clear();
   }
 
-  function connectToRelay(relayUrl: string): WebSocket {
+  function connectToRelay(relayUrl: string): WebSocket | null {
+    if (!mounted || typeof window === "undefined") return null;
+
     if (activeConnections.has(relayUrl)) {
       return activeConnections.get(relayUrl) as WebSocket;
     }
-    const socket = new WebSocket(relayUrl);
-    socket.addEventListener("message", handleSocketMessage);
-    activeConnections.set(relayUrl, socket);
-    return socket;
+    try {
+      const socket = new WebSocket(relayUrl);
+      socket.addEventListener("message", handleSocketMessage);
+      activeConnections.set(relayUrl, socket);
+      return socket;
+    } catch (error) {
+      console.error(`Failed to connect to relay ${relayUrl}:`, error);
+      return null;
+    }
   }
 
   function fetchPosts(
@@ -238,46 +251,52 @@
   }
 </script>
 
-<div class="container">
-  <div class="post-results grid grid-cols-1 gap-8">
-    {#each posts as post}
-      {@const project = keys.find((p) => p.nostrPubKey === post.pubkey)}
-      {@const metadata = project?.metadata || {}}
-      <div class="post-card">
-        <div class="post-header">
-          <img
-            src={metadata.picture || "./assets/default-avatar.png"}
-            alt={`Profile picture of ${metadata.name || "user"}`}
-            class="profile-image"
-            on:error={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (target) target.src = "./assets/default-avatar.png";
-            }}
-          />
-          <div class="author-info">
-            <div class="author" data-pubkey={post.pubkey}>
-              {metadata.name || prettyFormatKey(post.pubkey)}
-            </div>
-            {#if metadata.nip05}
-              <div class="nip05">
-                {metadata.nip05}
+{#if mounted}
+  <div class="container">
+    <div class="post-results grid grid-cols-1 gap-8">
+      {#each posts as post}
+        {@const project = keys.find((p) => p.nostrPubKey === post.pubkey)}
+        {@const metadata = project?.metadata || {}}
+        <div class="post-card">
+          <div class="post-header">
+            <img
+              src={metadata.picture || "./assets/default-avatar.png"}
+              alt={`Profile picture of ${metadata.name || "user"}`}
+              class="profile-image"
+              on:error={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target) target.src = "./assets/default-avatar.png";
+              }}
+            />
+            <div class="author-info">
+              <div class="author" data-pubkey={post.pubkey}>
+                {metadata.name || prettyFormatKey(post.pubkey)}
               </div>
-            {/if}
+              {#if metadata.nip05}
+                <div class="nip05">
+                  {metadata.nip05}
+                </div>
+              {/if}
+            </div>
+          </div>
+          <div class="post-content">
+            {@html parseContent(post.content)}
+          </div>
+          <div class="post-footer">
+            Created At: {dateToString(post.created_at)}
           </div>
         </div>
-        <div class="post-content">
-          {@html parseContent(post.content)}
-        </div>
-        <div class="post-footer">
-          Created At: {dateToString(post.created_at)}
-        </div>
-      </div>
-    {/each}
+      {/each}
+    </div>
+    {#if posts.length > 0}
+      <button on:click={loadMorePosts} class="load-more"> Load More </button>
+    {/if}
   </div>
-  <button on:click={loadMorePosts} class="load-more">
-    Load More
-  </button>
-</div>
+{:else}
+  <div class="container">
+    <div class="loading-state">Loading...</div>
+  </div>
+{/if}
 
 <style>
   .container {
@@ -431,6 +450,16 @@
 
   :global(.dark) .load-more:hover {
     background: var(--primary-light, var(--primary));
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-color, #1a1a1a);
+  }
+
+  :global(.dark) .loading-state {
+    color: var(--text-color-dark, #ffffff);
   }
 
   @media (max-width: 640px) {
