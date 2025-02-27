@@ -59,7 +59,7 @@
         return;
       }
 
-      window.location.href = downloadLink;
+      window.open(downloadLink, "_blank"); 
 
       toast.success("Download started");
     } catch (error) {
@@ -238,8 +238,6 @@
                   </div>
                 </div>
               </div>
-
-
             </div>
           {/each}
         </div>
