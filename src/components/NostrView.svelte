@@ -239,91 +239,220 @@
 </script>
 
 <div class="container">
-  <div
-    class="post-results grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6"
-  >
+  <div class="post-results grid grid-cols-1 gap-8">
     {#each posts as post}
       {@const project = keys.find((p) => p.nostrPubKey === post.pubkey)}
       {@const metadata = project?.metadata || {}}
-      <div
-        class="post-card bg-[var(--page-bg)] dark:bg-white/10 shadow-lg rounded-lg overflow-hidden"
-      >
-        <div class="post-header flex items-center p-4">
+      <div class="post-card">
+        <div class="post-header">
           <img
             src={metadata.picture || "./assets/default-avatar.png"}
             alt={`Profile picture of ${metadata.name || "user"}`}
-            class="profile-image w-12 h-12 rounded-full mr-4"
+            class="profile-image"
             on:error={(e) => {
               const target = e.target as HTMLImageElement;
               if (target) target.src = "./assets/default-avatar.png";
             }}
           />
           <div class="author-info">
-            <div
-              class="author font-semibold text-lg text-gray-800 dark:text-gray-200"
-              data-pubkey={post.pubkey}
-            >
+            <div class="author" data-pubkey={post.pubkey}>
               {metadata.name || prettyFormatKey(post.pubkey)}
             </div>
             {#if metadata.nip05}
-              <div class="nip05 text-sm text-gray-600 dark:text-gray-400">
+              <div class="nip05">
                 {metadata.nip05}
               </div>
             {/if}
           </div>
         </div>
-        <div class="post-content p-4 text-gray-700 dark:text-gray-300">
+        <div class="post-content">
           {@html parseContent(post.content)}
         </div>
-        <div
-          class="post-footer p-4 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700"
-        >
+        <div class="post-footer">
           Created At: {dateToString(post.created_at)}
         </div>
       </div>
     {/each}
   </div>
-  <button
-    on:click={loadMorePosts}
-    class="load-more mt-8 bg-[var(--primary)] text-white py-2 px-4 rounded-lg hover:bg-[var(--primary)] transition"
-  >
+  <button on:click={loadMorePosts} class="load-more">
     Load More
   </button>
 </div>
 
 <style>
   .container {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
   }
 
   .post-card {
-    transition:
-      transform 0.3s,
-      box-shadow 0.3s;
+    background: var(--card-bg, #ffffff);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  }
+
+  :global(.dark) .post-card {
+    background: var(--card-bg-dark, #1a1a1a);
+    border-color: var(--border-color-dark, rgba(255, 255, 255, 0.1));
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   }
 
   .post-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.dark) .post-card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+  }
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    background: var(--header-bg, rgba(255, 255, 255, 0.05));
+  }
+
+  :global(.dark) .post-header {
+    border-bottom-color: var(--border-color-dark, rgba(255, 255, 255, 0.1));
+    background: var(--header-bg-dark, rgba(0, 0, 0, 0.2));
   }
 
   .profile-image {
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
-    margin-right: 10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+  }
+
+  .author-info {
+    flex: 1;
+  }
+
+  .author {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color, #1a1a1a);
+    margin-bottom: 0.25rem;
+  }
+
+  :global(.dark) .author {
+    color: var(--text-color-dark, #ffffff);
+  }
+
+  .nip05 {
+    font-size: 0.9rem;
+    color: var(--text-secondary, #666666);
+  }
+
+  :global(.dark) .nip05 {
+    color: var(--text-secondary-dark, #a0a0a0);
+  }
+
+  .post-content {
+    padding: 1.5rem;
+    color: var(--text-color, #1a1a1a);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  :global(.dark) .post-content {
+    color: var(--text-color-dark, #ffffff);
+  }
+
+  .post-content :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 1rem 0;
+  }
+
+  .post-content :global(video) {
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 1rem 0;
+  }
+
+  .post-content :global(a) {
+    color: var(--link-color, var(--primary));
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  :global(.dark) .post-content :global(a) {
+    color: var(--link-color-dark, var(--primary-light, #60a5fa));
+  }
+
+  .post-footer {
+    padding: 1rem 1.5rem;
+    background: var(--footer-bg, rgba(0, 0, 0, 0.02));
+    color: var(--text-secondary, #666666);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  }
+
+  :global(.dark) .post-footer {
+    background: var(--footer-bg-dark, rgba(255, 255, 255, 0.02));
+    color: var(--text-secondary-dark, #a0a0a0);
+    border-top-color: var(--border-color-dark, rgba(255, 255, 255, 0.1));
   }
 
   .load-more {
     display: block;
-    width: 100%;
-    padding: 10px;
-    margin-top: 20px;
+    width: 200px;
+    margin: 2rem auto;
+    padding: 0.8rem 1.5rem;
+    background: var(--primary);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .load-more:hover {
+    transform: translateY(-1px);
+    background: var(--primary-dark, var(--primary));
+    opacity: 0.9;
+  }
+
+  :global(.dark) .load-more {
+    background: var(--primary-dark, var(--primary));
+  }
+
+  :global(.dark) .load-more:hover {
+    background: var(--primary-light, var(--primary));
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      padding: 10px;
+    }
+
+    .post-card {
+      border-radius: 12px;
+    }
+
+    .post-header {
+      padding: 1rem;
+    }
+
+    .profile-image {
+      width: 50px;
+      height: 50px;
+    }
+
+    .post-content {
+      padding: 1rem;
+    }
   }
 </style>
