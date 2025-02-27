@@ -31,7 +31,7 @@
     title: string;
     price: number;
     slug: string;
-    fileName: string; 
+    fileName: string;
   }>;
 
   let selectedMethod = "";
@@ -138,44 +138,35 @@
 
   async function handleSuccessfulPayment() {
     try {
-         for (const product of products) {
-        console.log("Downloading file:", product.fileName); 
-        if (downloadStore.checkExistingDownload(product.slug)) {
-           await downloadStore.updateExistingDownload(product.slug, 3);
-          console.log("Extended download for:", product.slug);
-        } else {
-           const expirationDate = new Date();
-          expirationDate.setMonth(expirationDate.getMonth() + 1);
-          
-           const downloadItem: Download = {
-             slug: product.slug,
-             title: product.title,
-             fileName: product.fileName,
-             purchaseDate: new Date().toISOString(),
-             price: product.price,
-             userId: crypto.randomUUID(),
-             downloads: 0,
-             maxDownloads: 3,
-             expirationDate: expirationDate.toISOString(),
-             quantity: 0
-           };
+      for (const product of products) {
+        console.log("Downloading file:", product.fileName);
+        if (!downloadStore.checkExistingDownload(product.slug)) {
+          const downloadItem: Download = {
+            slug: product.slug,
+            title: product.title,
+            fileName: product.fileName,
+            purchaseDate: new Date().toISOString(),
+            price: product.price,
+            userId: crypto.randomUUID(),
+            quantity: 0,
+          };
           await downloadStore.addDownload(downloadItem);
           console.log("Added new download:", product.slug);
         }
       }
 
-       cart.clear();
+      cart.clear();
       console.log("Cart cleared");
 
-       const confetti = (await import("canvas-confetti")).default;
+      const confetti = (await import("canvas-confetti")).default;
 
-       confetti({
+      confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
 
-       const duration = 3000;
+      const duration = 3000;
       const end = Date.now() + duration;
 
       (function frame() {
@@ -197,9 +188,9 @@
         }
       })();
 
-       showSuccessAnimation();
+      showSuccessAnimation();
 
-       setTimeout(() => {
+      setTimeout(() => {
         show = false;
         window.location.href = "/downloads/";
       }, 3000);
@@ -252,17 +243,17 @@
 
   function copyAddress(address: string) {
     navigator.clipboard.writeText(address);
-   }
+  }
 
   $: if (typeof window !== "undefined") {
     toggleBodyScroll(show);
   }
 
-   onMount(async () => {
+  onMount(async () => {
     if (show) {
       await fetchBitcoinPrice();
     }
-     const interval = setInterval(() => {
+    const interval = setInterval(() => {
       if (show) {
         fetchBitcoinPrice();
       }
@@ -273,12 +264,12 @@
     });
   });
 
-   onMount(() => {
+  onMount(() => {
     if (show) {
       fetchBitcoinPrice();
     }
 
-     autoRefreshInterval = setInterval(() => {
+    autoRefreshInterval = setInterval(() => {
       if (show && selectedMethod) {
         fetchBitcoinPrice();
       }
@@ -291,7 +282,7 @@
     };
   });
 
-   $: if (!show && autoRefreshInterval) {
+  $: if (!show && autoRefreshInterval) {
     clearInterval(autoRefreshInterval);
   }
 </script>
@@ -302,12 +293,12 @@
     class="fixed inset-0 flex items-center justify-center z-50 p-4"
     transition:fade={{ duration: 200 }}
   >
-     <div
+    <div
       class="absolute inset-0 backdrop-blur-sm bg-black/50"
       transition:blur={{ duration: 200 }}
     ></div>
 
-     <div
+    <div
       class="relative bg-white dark:bg-[var(--card-bg)] rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
       transition:scale={{
         duration: 300,
@@ -317,7 +308,7 @@
         easing: quintOut,
       }}
     >
-       <div
+      <div
         class="sticky top-0 z-10 bg-inherit p-4 flex justify-between items-center rounded-t-3xl"
       >
         <h2
@@ -337,10 +328,10 @@
         </button>
       </div>
 
-       <div class="flex-1 overflow-y-auto custom-scrollbar">
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div class="p-4 space-y-6">
-           <div class="space-y-4">
-             {#each paymentMethods as method}
+          <div class="space-y-4">
+            {#each paymentMethods as method}
               <button
                 class="w-full flex items-center gap-4 p-4 rounded-lg bg-[var(--primary)] transition-colors"
                 class:selected={selectedMethod === method.id}
@@ -373,7 +364,7 @@
               class="space-y-6 bg-gray-50 dark:bg-white/10 rounded-xl p-6"
               transition:scale={{ duration: 200, opacity: 0.5 }}
             >
-               <div class="flex justify-between items-start gap-4">
+              <div class="flex justify-between items-start gap-4">
                 <div>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     Total Amount
@@ -396,7 +387,7 @@
                 </div>
               </div>
 
-               {#if isGeneratingInvoice}
+              {#if isGeneratingInvoice}
                 <div
                   class="flex flex-col items-center justify-center p-8 space-y-4"
                   in:fade
@@ -415,7 +406,7 @@
                 </div>
               {:else if invoice}
                 <div class="space-y-6">
-                   <div
+                  <div
                     class="flex items-center gap-2 p-3 bg-white dark:bg-[var(--card-bg)] rounded-xl"
                   >
                     <code class="text-sm break-all text-black dark:text-white"
@@ -432,11 +423,11 @@
                     </button>
                   </div>
 
-                   <div
+                  <div
                     class="flex flex-col items-center justify-center p-6 bg-white dark:bg-[var(--card-bg)] rounded-xl"
                   >
                     <p class="text-gray-400 mb-4">Scan QR Code to Pay</p>
-                     <div
+                    <div
                       class="w-[200px] h-[200px] relative flex items-center justify-center"
                     >
                       <img
@@ -446,7 +437,7 @@
                     </div>
                   </div>
 
-                   <div class="flex flex-col items-center gap-4">
+                  <div class="flex flex-col items-center gap-4">
                     {#if paymentResult}
                       <p
                         class="mt-2 text-sm font-medium"
@@ -483,7 +474,6 @@
 {/if}
 
 <style>
- 
   :global(.dark) .overflow-y-auto {
     scrollbar-width: thin;
     scrollbar-color: rgb(75, 85, 99) rgb(31, 41, 55);
@@ -515,7 +505,7 @@
     background-color: rgb(75, 85, 99);
   }
 
-   .selected {
+  .selected {
     @apply bg-[var(--primary)] text-white;
   }
 

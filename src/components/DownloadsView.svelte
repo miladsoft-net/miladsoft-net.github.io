@@ -52,11 +52,6 @@
     if (button) button.disabled = true;
 
     try {
-      if (download.downloads >= download.maxDownloads) {
-        toast.error("Maximum download limit reached");
-        return;
-      }
-
       const downloadLink = await downloadStore.handleSecureDownload(download);
 
       if (!downloadLink) {
@@ -221,30 +216,6 @@
                         ${download.price}
                       </div>
                     </div>
-
-                    <div class="space-y-1">
-                      <div
-                        class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]"
-                      >
-                        <Icon icon={ICONS.downloadCount} class="w-5 h-5" />
-                        <span class="font-medium">Downloads</span>
-                      </div>
-                      <div
-                        class="text-base font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {download.downloads} / {download.maxDownloads}
-                      </div>
-                    </div>
-
-                    <div class="space-y-1">
-                      <div class="flex items-center gap-2 text-[var(--primary)] dark:text-[var(--primary)]">
-                        <Icon icon={ICONS.expire} class="w-5 h-5" />
-                        <span class="font-medium">Expires</span>
-                      </div>
-                      <div class="text-base font-semibold text-gray-700 dark:text-gray-300">
-                        {new Date(download.expirationDate).toLocaleDateString()}
-                      </div>
-                    </div>
                   </div>
 
                   <div
@@ -256,7 +227,6 @@
                                hover:bg-opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed
                                w-full sm:w-auto"
                       on:click={() => handleDownload(download)}
-                      disabled={download.downloads >= download.maxDownloads}
                       data-slug={download.slug}
                     >
                       <Icon
@@ -269,15 +239,7 @@
                 </div>
               </div>
 
-              <!-- Progress Bar -->
-              <div class="h-1 bg-white dark:bg-white/10 rounded-b-xl">
-                <div
-                  id="progress-{download.slug}"
-                  class="h-full bg-[var(--primary)] transition-all duration-300"
-                  style="width: {(download.downloads / download.maxDownloads) *
-                    100}%"
-                ></div>
-              </div>
+
             </div>
           {/each}
         </div>

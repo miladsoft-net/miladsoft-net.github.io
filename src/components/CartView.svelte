@@ -7,12 +7,12 @@
   import PaymentModal from "./PaymentModal.svelte";
   import { fade, fly } from "svelte/transition";
   import { onMount } from "svelte";
-  import { v4 as uuidv4 } from 'uuid';
+  import { v4 as uuidv4 } from "uuid";
 
   let isClient = false;
   let showPaymentModal = false;
   let crypto: Crypto;
-  let userId = uuidv4() 
+  let userId = uuidv4();
 
   onMount(() => {
     isClient = true;
@@ -65,21 +65,15 @@
         }
 
         try {
-          if (downloadStore.checkExistingDownload(item.slug)) {
-            await downloadStore.updateExistingDownload(item.slug, Date.parse(timestamp));
-            toast.success(`Extended download period for ${item.title}`);
-          } else {
+          if (!downloadStore.checkExistingDownload(item.slug)) {
             const downloadItem: Download = {
               slug: item.slug,
               title: item.title,
-              fileName: item.fileName, 
+              fileName: item.fileName,
               purchaseDate: timestamp,
               price: item.salePrice || item.price,
-              userId : userId,
-              downloads: 0,
-              maxDownloads: 3,
-              expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Example expiration date 30 days from now
-              quantity: 1, 
+              userId: userId,
+              quantity: 1,
             };
 
             downloadStore.addDownload(downloadItem);
