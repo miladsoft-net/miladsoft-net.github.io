@@ -4,18 +4,18 @@
   --transition-duration: 150ms;
   --payment-bg-light: #ffffff;
   --payment-bg-dark: var(--card-bg);
-  --payment-text-light: #1f2937;
+  --payment-text-light: #37351f;
   --payment-text-dark: #e5e7eb;
-  --payment-border-light: #f3f4f6;
-  --payment-border-dark: #374151;
+  --payment-border-light: #e0e0e0;
+  --payment-border-dark: #46463a;
   --payment-inactive-light: #f9fafb;
-  --payment-inactive-dark: rgba(31, 41, 55, 0.5);
+  --payment-inactive-dark: rgba(30, 31, 27, 0.5);
 }
 
 /* Scrollbar styles */
 .payment-modal .overflow-y-auto {
   scrollbar-width: thin;
-  scrollbar-color: rgb(156, 163, 175) rgb(243, 244, 246);
+  scrollbar-color: rgb(165, 164, 151) rgb(243, 244, 246);
 }
 
 .dark .payment-modal .overflow-y-auto {
@@ -71,7 +71,7 @@
 }
 
 /* Dark mode improvements */
-.dark .payment-modal .text-[var(--text-color)] {
+.dark .payment-modal .text-var-text-color {
   color: rgb(229, 231, 235);
 }
 
@@ -103,7 +103,7 @@
 }
 
 .dark .payment-modal .invoice-container {
-  background: rgba(31, 41, 55, 0.8);
+  background: rgba(55, 55, 31, 0.8);
   border: 1px solid var(--payment-border-dark);
 }
 

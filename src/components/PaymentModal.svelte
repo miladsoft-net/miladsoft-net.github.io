@@ -455,7 +455,7 @@
                         <div
                           class="absolute inset-x-0 -bottom-px h-0.5 bg-[var(--primary)] scale-x-0 transition-transform duration-200 origin-center"
                           class:scale-x-100={activeTab === tab.id}
-                        />
+                        ></div>
                       </button>
                     {/each}
                   </div>
