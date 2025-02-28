@@ -1,0 +1,174 @@
+/* Theme variables */
+:root {
+  --primary-light: rgba(var(--primary-rgb), 0.1);
+  --transition-duration: 150ms;
+  --payment-bg-light: #ffffff;
+  --payment-bg-dark: var(--card-bg);
+  --payment-text-light: #1f2937;
+  --payment-text-dark: #e5e7eb;
+  --payment-border-light: #f3f4f6;
+  --payment-border-dark: #374151;
+  --payment-inactive-light: #f9fafb;
+  --payment-inactive-dark: rgba(31, 41, 55, 0.5);
+}
+
+/* Scrollbar styles */
+.payment-modal .overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156, 163, 175) rgb(243, 244, 246);
+}
+
+.dark .payment-modal .overflow-y-auto {
+  scrollbar-color: rgb(75, 85, 99) rgb(31, 41, 55);
+}
+
+/* Container styles */
+.payment-modal .content-container {
+  background: var(--payment-bg-light);
+  color: var(--payment-text-light);
+  border-color: var(--payment-border-light);
+}
+
+.dark .payment-modal .content-container {
+  background: var(--payment-bg-dark);
+  color: var(--payment-text-dark);
+  border-color: var(--payment-border-dark);
+}
+
+/* Button styles */
+.payment-modal button {
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-modal button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.payment-modal button:not([disabled]):hover {
+  transform: translateY(-1px);
+}
+
+.payment-modal button:not([disabled]):active {
+  transform: translateY(0);
+}
+
+.payment-modal button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.payment-modal button:not([disabled]):hover::after {
+  transform: scaleX(1);
+}
+
+/* Dark mode improvements */
+.dark .payment-modal .text-[var(--text-color)] {
+  color: rgb(229, 231, 235);
+}
+
+/* Tab styles */
+.payment-modal .tab-button {
+  background: var(--payment-inactive-light);
+  color: #6b7280;
+}
+
+.dark .payment-modal .tab-button {
+  background: var(--payment-inactive-dark);
+  color: #9ca3af;
+}
+
+.payment-modal .tab-button.active {
+  background: var(--payment-bg-light);
+  color: var(--primary);
+}
+
+.dark .payment-modal .tab-button.active {
+  background: var(--payment-bg-dark);
+  color: var(--primary);
+}
+
+/* Invoice container */
+.payment-modal .invoice-container {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--payment-border-light);
+}
+
+.dark .payment-modal .invoice-container {
+  background: rgba(31, 41, 55, 0.8);
+  border: 1px solid var(--payment-border-dark);
+}
+
+/* Animations */
+.payment-modal .loader {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  animation: rotate 2s linear infinite;
+}
+
+.payment-modal .circle {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: chase 2s ease-in-out infinite;
+}
+
+/* Success animation */
+.payment-modal .success-checkmark {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+
+.payment-modal .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4caf50;
+}
+
+/* Animation keyframes */
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes chase {
+  0% {
+    transform: scale(0.3) rotate(0deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.3) rotate(360deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes scale-up {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

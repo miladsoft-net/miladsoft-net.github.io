@@ -6,6 +6,7 @@
   import { quintOut } from "svelte/easing";
   import { downloadStore, type Download } from "../store/downloadsStore";
   import { cart } from "../store/cartStore";
+  import "../styles/PaymentModal.css";
 
   const dispatch = createEventDispatcher();
 
@@ -44,6 +45,9 @@
   let isGeneratingInvoice = false;
   let previousSatoshis = 0;
   let autoRefreshInterval: ReturnType<typeof setInterval>;
+  let activeTab = "invoice"; // Add this new variable for tab state
+  let tabTransitionDuration = 150;
+  let isTabTransitioning = false;
 
   // Watch for changes in show and total
   $: {
@@ -258,35 +262,35 @@
     navigator.clipboard.writeText(address);
   }
 
+  async function switchTab(newTab: string) {
+    if (activeTab === newTab || isTabTransitioning) return;
+
+    isTabTransitioning = true;
+    activeTab = newTab;
+
+    // صبر برای اتمام انیمیشن
+    await new Promise((resolve) => setTimeout(resolve, tabTransitionDuration));
+    isTabTransitioning = false;
+  }
+
   $: if (typeof window !== "undefined") {
     toggleBodyScroll(show);
   }
 
-  onMount(async () => {
-    if (show) {
-      await fetchBitcoinPrice();
-    }
-    const interval = setInterval(() => {
-      if (show) {
-        fetchBitcoinPrice();
-      }
-    }, 60000);
-
-    onDestroy(() => {
-      clearInterval(interval);
-    });
-  });
-
   onMount(() => {
-    if (show) {
-      fetchBitcoinPrice();
-    }
-
-    autoRefreshInterval = setInterval(() => {
-      if (show && selectedMethod) {
-        fetchBitcoinPrice();
+    const initialize = async () => {
+      if (show) {
+        await fetchBitcoinPrice();
       }
-    }, 60000);
+
+      autoRefreshInterval = setInterval(() => {
+        if (show && selectedMethod) {
+          fetchBitcoinPrice();
+        }
+      }, 60000);
+    };
+
+    initialize();
 
     return () => {
       if (autoRefreshInterval) {
@@ -298,12 +302,25 @@
   $: if (!show && autoRefreshInterval) {
     clearInterval(autoRefreshInterval);
   }
+
+  const tabs = [
+    {
+      id: "invoice",
+      icon: "material-symbols:receipt-outline",
+      label: "Invoice Text",
+    },
+    {
+      id: "qr",
+      icon: "material-symbols:qr-code",
+      label: "QR Code",
+    },
+  ];
 </script>
 
 {#if show}
   <div
     use:portal={"body"}
-    class="fixed inset-0 flex items-center justify-center z-50 p-4"
+    class="payment-modal fixed inset-0 flex items-center justify-center z-50 p-4"
     transition:fade={{ duration: 200 }}
   >
     <div
@@ -312,7 +329,7 @@
     ></div>
 
     <div
-      class="relative bg-white dark:bg-[var(--card-bg)] rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+      class="relative content-container rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
       transition:scale={{
         duration: 300,
         delay: 100,
@@ -419,63 +436,75 @@
                 </div>
               {:else if invoice}
                 <div class="space-y-6">
-                  <div
-                    class="flex items-center gap-2 p-3 bg-white dark:bg-[var(--card-bg)] rounded-xl"
-                  >
-                    <code class="text-sm break-all text-black dark:text-white"
-                      >{invoice}</code
-                    >
-                    <button
-                      class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      on:click={() => copyAddress(invoice)}
-                    >
-                      <Icon
-                        icon="material-symbols:content-copy"
-                        class="w-5 h-5"
-                      />
-                    </button>
-                  </div>
-
-                  <div
-                    class="flex flex-col items-center justify-center p-6 bg-white dark:bg-[var(--card-bg)] rounded-xl"
-                  >
-                    <p class="text-gray-400 mb-4">Scan QR Code to Pay</p>
-                    <div
-                      class="w-[200px] h-[200px] relative flex items-center justify-center"
-                    >
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=200x200`}
-                        alt="QR Code"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="flex flex-col items-center gap-4">
-                    {#if paymentResult}
-                      <p
-                        class="mt-2 text-sm font-medium"
-                        class:text-green-500={paymentResult.includes("✅")}
-                        class:text-red-500={paymentResult.includes("❌")}
-                        class:text-yellow-500={paymentResult.includes("⚠️")}
-                        class:text-[var(--primary)]={paymentResult.includes(
-                          "⏳"
-                        ) || paymentResult.includes("🔄")}
+                  <!-- Tab buttons -->
+                  <div class="flex gap-2 mb-4">
+                    {#each tabs as tab}
+                      <button
+                        class="tab-button flex-1 py-2.5 px-4 rounded-xl transition-all duration-200 font-medium relative group"
+                        class:active={activeTab === tab.id}
+                        on:click={() => switchTab(tab.id)}
+                        disabled={isTabTransitioning}
                       >
-                        {paymentResult}
-                      </p>
-                    {/if}
-                    {#if invoice && previousSatoshis !== satoshis}
-                      <div
-                        class="text-sm text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg"
-                      >
-                        <Icon
-                          icon="material-symbols:warning"
-                          class="inline-block mr-2"
+                        <div class="flex items-center justify-center gap-2">
+                          <Icon
+                            icon={tab.icon}
+                            class="w-5 h-5 transition-colors"
+                          />
+                          <span class="transition-colors">{tab.label}</span>
+                        </div>
+                        <div
+                          class="absolute inset-x-0 -bottom-px h-0.5 bg-[var(--primary)] scale-x-0 transition-transform duration-200 origin-center"
+                          class:scale-x-100={activeTab === tab.id}
                         />
-                        Bitcoin price has changed. A new invoice has been generated.
+                      </button>
+                    {/each}
+                  </div>
+
+                  <!-- Tab content -->
+                  <div class="relative h-[250px]">
+                    {#if activeTab === "invoice"}
+                      <div
+                        class="absolute inset-0 flex items-center gap-2 p-4 invoice-container rounded-xl"
+                        in:fade={{ duration: tabTransitionDuration }}
+                        out:fade={{ duration: tabTransitionDuration }}
+                      >
+                        <code
+                          class="text-sm break-all flex-1 text-[var(--text-color)]"
+                          >{invoice}</code
+                        >
+                        <button
+                          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                          on:click={() => copyAddress(invoice)}
+                        >
+                          <Icon
+                            icon="material-symbols:content-copy"
+                            class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[var(--primary)]"
+                          />
+                        </button>
+                      </div>
+                    {:else}
+                      <div
+                        class="absolute inset-0 flex flex-col items-center justify-center p-6 invoice-container rounded-xl"
+                        in:fade={{ duration: tabTransitionDuration }}
+                        out:fade={{ duration: tabTransitionDuration }}
+                      >
+                        <p class="text-[var(--text-color)] mb-4 font-medium">
+                          Scan QR Code to Pay
+                        </p>
+                        <div
+                          class="relative flex items-center justify-center bg-white p-3 rounded-lg shadow-sm"
+                        >
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?data=${invoice}&size=200x200`}
+                            alt="QR Code"
+                            class="max-h-[160px] w-auto"
+                          />
+                        </div>
                       </div>
                     {/if}
                   </div>
+
+                  <!-- ...existing payment result section... -->
                 </div>
               {/if}
             </div>
@@ -485,415 +514,3 @@
     </div>
   </div>
 {/if}
-
-<style>
-  :global(.dark) .overflow-y-auto {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(75, 85, 99) rgb(31, 41, 55);
-  }
-
-  .overflow-y-auto {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(156, 163, 175) rgb(243, 244, 246);
-  }
-
-  .overflow-y-auto::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .overflow-y-auto::-webkit-scrollbar-track {
-    background: rgb(243, 244, 246);
-  }
-
-  .overflow-y-auto::-webkit-scrollbar-thumb {
-    background-color: rgb(156, 163, 175);
-    border-radius: 4px;
-  }
-
-  :global(.dark) .overflow-y-auto::-webkit-scrollbar-track {
-    background: rgb(31, 41, 55);
-  }
-
-  :global(.dark) .overflow-y-auto::-webkit-scrollbar-thumb {
-    background-color: rgb(75, 85, 99);
-  }
-
-  .selected {
-    @apply bg-[var(--primary)] text-white;
-  }
-
-  .selected .text-gray-600 {
-    @apply text-white;
-  }
-
-  :global(.dark) .text-green-500 {
-    color: rgb(34, 197, 94);
-  }
-
-  :global(.dark) .text-red-500 {
-    color: rgb(239, 68, 68);
-  }
-
-  :global(.dark) .text-yellow-500 {
-    color: rgb(234, 179, 8);
-  }
-
-  :global(.dark) .text-blue-500 {
-    color: rgb(59, 130, 246);
-  }
-
-  /* Add smooth transitions */
-  .flex-col {
-    transition: height 0.3s ease-in-out;
-  }
-
-  /* Improved spacing utilities */
-  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1.5rem;
-  }
-
-  .space-y-4 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1rem;
-  }
-
-  .space-y-3 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.75rem;
-  }
-
-  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.5rem;
-  }
-
-  /* Add smooth transition for QR code */
-  img {
-    transition: transform 0.2s ease;
-  }
-
-  img:hover {
-    transform: scale(1.02);
-  }
-
-  /* Custom loader animation */
-  .loader {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    animation: rotate 2s linear infinite;
-  }
-
-  .circle {
-    position: absolute;
-    width: 60%;
-    height: 60%;
-    border-radius: 50%;
-    background: var(--primary, #3b82f6);
-    animation: chase 2s ease-in-out infinite;
-  }
-
-  .circle:nth-child(1) {
-    animation-delay: -0.3s;
-  }
-  .circle:nth-child(2) {
-    animation-delay: -0.6s;
-  }
-  .circle:nth-child(3) {
-    animation-delay: -0.9s;
-  }
-  .circle:nth-child(4) {
-    animation-delay: -1.2s;
-  }
-
-  @keyframes rotate {
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes chase {
-    0% {
-      transform: scale(0.3) rotate(0deg);
-      opacity: 0.8;
-    }
-    50% {
-      transform: scale(1) rotate(180deg);
-      opacity: 0.4;
-    }
-    100% {
-      transform: scale(0.3) rotate(360deg);
-      opacity: 0.8;
-    }
-  }
-
-  /* Smooth transitions */
-  :global(.scale-enter) {
-    animation: scale-in 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  :global(.scale-leave) {
-    animation: scale-out 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes scale-in {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @keyframes scale-out {
-    from {
-      transform: scale(1);
-      opacity: 1;
-    }
-    to {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-  }
-
-  /* Content transitions */
-  .space-y-6 {
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Hover effects */
-  button:not(:disabled):hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-  }
-
-  button:not(:disabled):active {
-    transform: translateY(0);
-  }
-
-  .flex-col {
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Always show scrollbar to prevent layout shift */
-  .overflow-y-scroll {
-    scrollbar-gutter: stable;
-  }
-
-  /* Improved close button hover effect */
-  button:hover .w-6.h-6 {
-    transform: scale(1.1);
-    transition: transform 0.2s ease;
-  }
-
-  /* Custom scrollbar styling */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(156, 163, 175) transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 20px;
-  }
-
-  :global(.dark) .custom-scrollbar {
-    scrollbar-color: rgba(0, 0, 0, 0.5) transparent;
-  }
-
-  :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(75, 85, 99, 0.5);
-  }
-
-  /* Hover effect for scrollbar */
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(107, 114, 128, 0.5);
-  }
-
-  :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(107, 114, 128, 0.5);
-  }
-
-  /* Make inner containers match the rounded corners */
-  .rounded-xl {
-    @apply rounded-2xl;
-  }
-
-  /* Add success checkmark animation styles */
-  .success-checkmark {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto;
-  }
-
-  .check-icon {
-    width: 80px;
-    height: 80px;
-    position: relative;
-    border-radius: 50%;
-    box-sizing: content-box;
-    border: 4px solid #4caf50;
-  }
-
-  .check-icon::before {
-    top: 3px;
-    left: -2px;
-    width: 30px;
-    transform-origin: 100% 50%;
-    border-radius: 100px 0 0 100px;
-  }
-
-  .check-icon::after {
-    top: 0;
-    left: 30px;
-    width: 60px;
-    transform-origin: 0 50%;
-    border-radius: 0 100px 100px 0;
-    animation: rotate-circle 4.25s ease-in;
-  }
-
-  .check-icon::before,
-  .check-icon::after {
-    content: "";
-    height: 100px;
-    position: absolute;
-    background: #ffffff;
-    transform: rotate(-45deg);
-  }
-
-  .icon-line {
-    height: 5px;
-    background-color: #4caf50;
-    display: block;
-    border-radius: 2px;
-    position: absolute;
-    z-index: 10;
-  }
-
-  .line-tip {
-    top: 46px;
-    left: 14px;
-    width: 25px;
-    transform: rotate(45deg);
-    animation: icon-line-tip 0.75s;
-  }
-
-  .line-long {
-    top: 38px;
-    right: 8px;
-    width: 47px;
-    transform: rotate(-45deg);
-    animation: icon-line-long 0.75s;
-  }
-
-  .icon-circle {
-    top: -4px;
-    left: -4px;
-    z-index: 10;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    position: absolute;
-    box-sizing: content-box;
-    border: 4px solid rgba(76, 175, 80, 0.5);
-  }
-
-  .icon-fix {
-    top: 8px;
-    width: 5px;
-    left: 26px;
-    z-index: 1;
-    height: 85px;
-    position: absolute;
-    transform: rotate(-45deg);
-    background-color: #ffffff;
-  }
-
-  @keyframes rotate-circle {
-    0% {
-      transform: rotate(-45deg);
-    }
-    5% {
-      transform: rotate(-45deg);
-    }
-    12% {
-      transform: rotate(-405deg);
-    }
-    100% {
-      transform: rotate(-405deg);
-    }
-  }
-
-  @keyframes icon-line-tip {
-    0% {
-      width: 0;
-      left: 1px;
-      top: 19px;
-    }
-    54% {
-      width: 0;
-      left: 1px;
-      top: 19px;
-    }
-    70% {
-      width: 50px;
-      left: -8px;
-      top: 37px;
-    }
-    84% {
-      width: 17px;
-      left: 21px;
-      top: 48px;
-    }
-    100% {
-      width: 25px;
-      left: 14px;
-      top: 46px;
-    }
-  }
-
-  @keyframes icon-line-long {
-    0% {
-      width: 0;
-      right: 46px;
-      top: 54px;
-    }
-    65% {
-      width: 0;
-      right: 46px;
-      top: 54px;
-    }
-    84% {
-      width: 55px;
-      right: 0px;
-      top: 35px;
-    }
-    100% {
-      width: 47px;
-      right: 8px;
-      top: 38px;
-    }
-  }
-
-  .scale-up {
-    animation: scale-up 0.4s ease-out;
-  }
-
-  @keyframes scale-up {
-    0% {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-</style>
