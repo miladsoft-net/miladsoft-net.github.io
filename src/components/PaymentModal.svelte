@@ -83,7 +83,7 @@
     }
   }
 
-  async function generateInvoice() {
+  async function generateInvoice(retryCount = 0) {
     isGeneratingInvoice = true;
     paymentResult = "";
 
@@ -101,8 +101,21 @@
       verifyUrl = data.invoice.verify;
       startPaymentCheck();
     } catch (error) {
-      console.error("Error generating invoice:", error);
-      paymentResult = "❌ Error generating invoice. Please try again.";
+      console.error(
+        `Error generating invoice (attempt ${retryCount + 1}/3):`,
+        error
+      );
+
+      if (retryCount < 2) {
+        // Try up to 3 times (0, 1, 2)
+        paymentResult = `⏳ Retrying... (attempt ${retryCount + 2}/3)`;
+        // Wait 2 seconds before retrying
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return generateInvoice(retryCount + 1);
+      } else {
+        paymentResult =
+          "❌ Failed to generate invoice. Please try again later.";
+      }
     } finally {
       isGeneratingInvoice = false;
     }
@@ -238,7 +251,7 @@
   function handlePaymentSelect(methodId: string) {
     selectedMethod = methodId;
     previousSatoshis = satoshis;
-    generateInvoice();
+    generateInvoice(0); // Start with retry count 0
   }
 
   function copyAddress(address: string) {
