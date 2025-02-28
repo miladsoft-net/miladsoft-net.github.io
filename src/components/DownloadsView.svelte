@@ -12,8 +12,6 @@
     download: "fluent:arrow-download-24-filled",
     calendar: "fluent:calendar-28-filled",
     price: "fluent:money-24-filled",
-    downloadCount: "fluent:arrow-download-28-filled",
-    expire: "fluent:timer-24-filled",
     export: "fluent:share-24-filled",
     import: "fluent:arrow-import-24-filled",
     downloadTitle: "fluent:box-24-filled",
@@ -59,7 +57,7 @@
         return;
       }
 
-      window.open(downloadLink, "_blank"); 
+      window.open(downloadLink, "_blank");
 
       toast.success("Download started");
     } catch (error) {
@@ -73,11 +71,21 @@
   }
 
   async function exportDownloads() {
+    if ($downloadStore.length === 0) {
+      toast.error("No downloads available to export");
+      return;
+    }
+
     try {
+      isLoading = true;
       await saveExportFile(uniqueDownloads);
       toast.success("Downloads exported successfully");
     } catch (error) {
-      toast.error("Failed to export downloads");
+      toast.error(
+        error instanceof Error ? error.message : "Error exporting downloads"
+      );
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -86,16 +94,28 @@
     if (!input.files?.length) return;
 
     try {
+      isLoading = true;
       const importedDownloads = await handleImportFile(input.files[0]);
-      importedDownloads.forEach((download) => {
+
+      let importCount = 0;
+      for (const download of importedDownloads) {
         if (!downloadStore.checkExistingDownload(download.slug)) {
-          downloadStore.addDownload(download);
+          await downloadStore.addDownload(download);
+          importCount++;
         }
-      });
-      toast.success("Downloads imported successfully");
+      }
+
+      if (importCount > 0) {
+        toast.success(`Successfully imported ${importCount} downloads`);
+      } else {
+        toast.info("All downloads have already been imported");
+      }
     } catch (error) {
-      toast.error("Failed to import downloads");
+      toast.error(
+        error instanceof Error ? error.message : "Error importing file"
+      );
     } finally {
+      isLoading = false;
       input.value = ""; // Reset input
     }
   }

@@ -15,7 +15,7 @@ const posts = defineCollection({
     isFree: z.boolean().default(true),
     price: z.number().optional(),
     salePrice: z.number().optional(),
-    fileName: z.string().optional(), // مطمئن شوید که اینجا تعریف شده است
+    fileName: z.string().optional(),
   })
 });
 
