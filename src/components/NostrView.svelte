@@ -13,6 +13,8 @@
   };
 
   let mounted = false;
+  let isLoading = true;
+  let isInitialLoad = true;
   let posts: Post[] = [];
   let keys: Key[] = [];
   const activeConnections = new Map<string, WebSocket>();
@@ -49,6 +51,8 @@
       fetchAllPosts();
     } catch (error) {
       console.error("Error loading keys:", error);
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -65,6 +69,7 @@
 
   function fetchAllPosts() {
     if (keys.length && relayUrls.length) {
+      isLoading = true;
       keys.forEach((project) => {
         fetchPosts(project.nostrPubKey, Date.now() / 1000, postsToLoad);
       });
@@ -183,6 +188,10 @@
           posts = [eventData, ...posts].sort(
             (a, b) => b.created_at - a.created_at
           );
+          if (isInitialLoad && posts.length > 0) {
+            isLoading = false;
+            isInitialLoad = false;
+          }
         }
       }
     } catch (error) {
@@ -253,43 +262,57 @@
 
 {#if mounted}
   <div class="container">
-    <div class="post-results grid grid-cols-1 gap-8">
-      {#each posts as post}
-        {@const project = keys.find((p) => p.nostrPubKey === post.pubkey)}
-        {@const metadata = project?.metadata || {}}
-        <div class="post-card">
-          <div class="post-header">
-            <img
-              src={metadata.picture || "./assets/default-avatar.png"}
-              alt={`Profile picture of ${metadata.name || "user"}`}
-              class="profile-image"
-              on:error={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (target) target.src = "./assets/default-avatar.png";
-              }}
-            />
-            <div class="author-info">
-              <div class="author" data-pubkey={post.pubkey}>
-                {metadata.name || prettyFormatKey(post.pubkey)}
-              </div>
-              {#if metadata.nip05}
-                <div class="nip05">
-                  {metadata.nip05}
+    {#if isLoading && posts.length === 0}
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading posts...</p>
+      </div>
+    {:else}
+      <div class="post-results grid grid-cols-1 gap-8">
+        {#each posts as post}
+          {@const project = keys.find((p) => p.nostrPubKey === post.pubkey)}
+          {@const metadata = project?.metadata || {}}
+          <div class="post-card">
+            <div class="post-header">
+              <img
+                src={metadata.picture || "./assets/default-avatar.png"}
+                alt={`Profile picture of ${metadata.name || "user"}`}
+                class="profile-image"
+                on:error={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target) target.src = "./assets/default-avatar.png";
+                }}
+              />
+              <div class="author-info">
+                <div class="author" data-pubkey={post.pubkey}>
+                  {metadata.name || prettyFormatKey(post.pubkey)}
                 </div>
-              {/if}
+                {#if metadata.nip05}
+                  <div class="nip05">
+                    {metadata.nip05}
+                  </div>
+                {/if}
+              </div>
+            </div>
+            <div class="post-content">
+              {@html parseContent(post.content)}
+            </div>
+            <div class="post-footer">
+              Created At: {dateToString(post.created_at)}
             </div>
           </div>
-          <div class="post-content">
-            {@html parseContent(post.content)}
-          </div>
-          <div class="post-footer">
-            Created At: {dateToString(post.created_at)}
-          </div>
-        </div>
-      {/each}
-    </div>
-    {#if posts.length > 0}
-      <button on:click={loadMorePosts} class="load-more"> Load More </button>
+        {/each}
+      </div>
+      {#if posts.length > 0}
+        <button on:click={loadMorePosts} class="load-more">
+          {#if isLoading}
+            <div class="spinner-small"></div>
+            <span>Loading...</span>
+          {:else}
+            Load More
+          {/if}
+        </button>
+      {/if}
     {/if}
   </div>
 {:else}
@@ -424,7 +447,9 @@
   }
 
   .load-more {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 200px;
     margin: 2rem auto;
     padding: 0.8rem 1.5rem;
@@ -460,6 +485,50 @@
 
   :global(.dark) .loading-state {
     color: var(--text-color-dark, #ffffff);
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    width: 100%;
+    color: var(--text-color, #1a1a1a);
+  }
+
+  :global(.dark) .loading-container {
+    color: var(--text-color-dark, #ffffff);
+  }
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary, #3498db);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  .spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary, #3498db);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   @media (max-width: 640px) {
