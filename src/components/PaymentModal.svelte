@@ -6,7 +6,7 @@
   import { quintOut } from "svelte/easing";
   import { downloadStore, type Download } from "../store/downloadsStore";
   import { cart } from "../store/cartStore";
-  import "../styles/PaymentModal.css";
+  // Remove PaymentModal.css import
 
   const dispatch = createEventDispatcher();
 
@@ -320,16 +320,20 @@
 {#if show}
   <div
     use:portal={"body"}
-    class="payment-modal fixed inset-0 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 flex items-center justify-center z-50 p-4"
     transition:fade={{ duration: 200 }}
   >
+    <!-- Backdrop -->
     <div
       class="absolute inset-0 backdrop-blur-sm bg-black/50"
       transition:blur={{ duration: 200 }}
-    ></div>
+    />
 
+    <!-- Modal Container -->
     <div
-      class="relative content-container rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+      class="relative rounded-3xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden
+             bg-white/95 dark:bg-black/95 backdrop-blur-xl backdrop-saturate-150
+             border border-black/[0.04] dark:border-white/[0.04]"
       transition:scale={{
         duration: 300,
         delay: 100,
@@ -338,33 +342,41 @@
         easing: quintOut,
       }}
     >
+      <!-- Header -->
       <div
-        class="sticky top-0 z-10 bg-inherit p-4 flex justify-between items-center rounded-t-3xl"
+        class="sticky top-0 z-10 bg-inherit p-4 flex justify-between items-center
+                  border-b border-black/[0.04] dark:border-white/[0.04]"
       >
         <h2
-          class="text-xl font-bold flex items-center gap-2 text-black dark:text-white"
+          class="text-xl font-bold flex items-center gap-2 text-black/90 dark:text-white/90"
         >
           <Icon icon="material-symbols:payments-outline" class="w-6 h-6" />
           Select Payment Method
         </h2>
         <button
-          class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90"
+          class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90"
           on:click={handleClose}
         >
           <Icon
             icon="material-symbols:close"
-            class="w-6 h-6 text-gray-500 dark:text-gray-400 dark:hover:text-gray-200"
+            class="text-[1.25rem] text-black/50 dark:text-white/50"
           />
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto custom-scrollbar">
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto">
         <div class="p-4 space-y-6">
+          <!-- Payment Methods -->
           <div class="space-y-4">
             {#each paymentMethods as method}
               <button
-                class="w-full flex items-center gap-4 p-4 rounded-lg bg-[var(--primary)] transition-colors"
-                class:selected={selectedMethod === method.id}
+                class="w-full flex items-center gap-4 p-4 rounded-xl transition-all
+                       bg-black/[0.04] hover:bg-black/[0.06] active:bg-black/[0.08]
+                       dark:bg-white/5 dark:hover:bg-white/10 dark:active:bg-white/15
+                       text-black/90 dark:text-white/90"
+                class:ring-2={selectedMethod === method.id}
+                class:ring-[#daa717]={selectedMethod === method.id}
                 on:click={() => handlePaymentSelect(method.id)}
               >
                 <div class="flex-shrink-0">
@@ -391,7 +403,9 @@
 
           {#if selectedMethod}
             <div
-              class="space-y-6 bg-gray-50 dark:bg-white/10 rounded-xl p-6"
+              class="space-y-6 rounded-xl p-6
+                     bg-black/[0.02] dark:bg-white/[0.02]
+                     backdrop-blur-md"
               transition:scale={{ duration: 200, opacity: 0.5 }}
             >
               <div class="flex justify-between items-start gap-4">
@@ -422,11 +436,13 @@
                   class="flex flex-col items-center justify-center p-8 space-y-4"
                   in:fade
                 >
-                  <div class="loader">
-                    <div class="circle"></div>
-                    <div class="circle"></div>
-                    <div class="circle"></div>
-                    <div class="circle"></div>
+                  <div class="relative w-20 h-20">
+                    <div
+                      class="animate-ping absolute inset-0 rounded-full bg-[#daa717] opacity-75"
+                    ></div>
+                    <div
+                      class="relative rounded-full bg-[#daa717] w-20 h-20 animate-pulse"
+                    ></div>
                   </div>
                   <p
                     class="text-gray-700 dark:text-gray-300 font-medium animate-pulse"
@@ -440,22 +456,36 @@
                   <div class="flex gap-2 mb-4">
                     {#each tabs as tab}
                       <button
-                        class="tab-button flex-1 py-2.5 px-4 rounded-xl transition-all duration-200 font-medium relative group"
-                        class:active={activeTab === tab.id}
+                        class="flex-1 py-2.5 px-4 rounded-xl transition-all duration-300 font-medium
+                               bg-black/[0.04] hover:bg-black/[0.06] active:bg-black/[0.08]
+                               dark:bg-white/5 dark:hover:bg-white/10 dark:active:bg-white/15
+                               text-black/50 dark:text-white/50
+                               disabled:opacity-50 disabled:cursor-not-allowed
+                               hover:shadow-md hover:-translate-y-0.5
+                               active:translate-y-0 active:shadow-sm"
+                        class:active-tab={activeTab === tab.id}
                         on:click={() => switchTab(tab.id)}
                         disabled={isTabTransitioning}
                       >
                         <div class="flex items-center justify-center gap-2">
                           <Icon
                             icon={tab.icon}
-                            class="w-5 h-5 transition-colors"
+                            class="w-5 h-5 transition-colors
+                                   {activeTab === tab.id
+                              ? 'text-white'
+                              : 'text-black/40 dark:text-white/40'}
+                                   group-hover:text-[#daa717] dark:group-hover:text-[#daa717]"
                           />
-                          <span class="transition-colors">{tab.label}</span>
+                          <span
+                            class="transition-colors font-medium
+                                      {activeTab === tab.id
+                              ? 'text-white'
+                              : 'text-black/60 dark:text-white/60'}
+                                      group-hover:text-[#daa717] dark:group-hover:text-[#daa717]"
+                          >
+                            {tab.label}
+                          </span>
                         </div>
-                        <div
-                          class="absolute inset-x-0 -bottom-px h-0.5 bg-[var(--primary)] scale-x-0 transition-transform duration-200 origin-center"
-                          class:scale-x-100={activeTab === tab.id}
-                        ></div>
                       </button>
                     {/each}
                   </div>
@@ -464,31 +494,35 @@
                   <div class="relative h-[250px]">
                     {#if activeTab === "invoice"}
                       <div
-                        class="absolute inset-0 flex items-center gap-2 p-4 invoice-container rounded-xl"
+                        class="absolute inset-0 flex items-center gap-2 p-4 rounded-xl
+                               bg-black/[0.04] dark:bg:white/5
+                               backdrop-blur-md border border-black/[0.04] dark:border:white/[0.04]"
                         in:fade={{ duration: tabTransitionDuration }}
                         out:fade={{ duration: tabTransitionDuration }}
                       >
                         <code
-                          class="text-sm break-all flex-1 text-[var(--text-color)]"
+                          class="text-sm break-all flex-1 text-black/70 dark:text-white/70"
                           >{invoice}</code
                         >
                         <button
-                          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                          class="btn-plain scale-animation rounded-lg p-2 active:scale-90"
                           on:click={() => copyAddress(invoice)}
                         >
                           <Icon
                             icon="material-symbols:content-copy"
-                            class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[var(--primary)]"
+                            class="w-5 h-5 text-black/30 dark:text-white/30 group-hover:text-[#daa717]"
                           />
                         </button>
                       </div>
                     {:else}
                       <div
-                        class="absolute inset-0 flex flex-col items-center justify-center p-6 invoice-container rounded-xl"
+                        class="absolute inset-0 flex flex-col items-center justify-center p-6 rounded-xl
+                               bg-black/[0.04] dark:bg-white/5
+                               backdrop-blur-md border border-black/[0.04] dark:border-white/[0.04]"
                         in:fade={{ duration: tabTransitionDuration }}
                         out:fade={{ duration: tabTransitionDuration }}
                       >
-                        <p class="text-[var(--text-color)] mb-4 font-medium">
+                        <p class="text-black/30 dark:text-white mb-4 font-medium">
                           Scan QR Code to Pay
                         </p>
                         <div
@@ -514,3 +548,18 @@
     </div>
   </div>
 {/if}
+
+<style>
+  .active-tab {
+    @apply bg-gradient-to-r from-[#daa717] to-[#e6b94d];
+    @apply shadow-lg shadow-[#daa717]/20 dark:shadow-[#daa717]/10;
+    @apply border-none;
+    @apply text-white;
+    @apply hover:from-[#e6b94d] hover:to-[#daa717];
+    @apply transform transition-all duration-300;
+  }
+
+  .active-tab:hover {
+    @apply shadow-xl shadow-[#daa717]/30 dark:shadow-[#daa717]/20;
+  }
+</style>

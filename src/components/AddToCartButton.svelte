@@ -19,6 +19,7 @@
           salePrice: item.salePrice,
           fileName: item.fileName,
           addedAt: new Date().toISOString(),
+          productUrl: item.productUrl,
         };
         cart.addItem(cartItem);
         toast.success(`${item.title} added to cart`);
@@ -31,17 +32,20 @@
 </script>
 
 <button
-  class="w-full py-4 px-8 rounded-lg font-semibold transition-all bg-[var(--primary)] text-white text-center hover:opacity-90 hover:-translate-y-1"
+  class="w-full py-4 px-8 rounded-lg font-semibold transition-all bg-[var(--primary)] text-white text-center
+         hover:opacity-90 hover:-translate-y-1 hover:shadow-lg
+         active:translate-y-0 active:shadow-sm"
   class:in-cart={isInCart}
   on:click={handleClick}
 >
-  <span class="text-black/70 dark:text-white/70"
-    >{isInCart ? "Go to Cart" : "Add to Cart"}</span
-  >
+  <span class="text-black/70 dark:text-white/70 font-medium">
+    {isInCart ? "Go to Cart" : "Add to Cart"}
+  </span>
 </button>
 
 <style>
   .in-cart {
-    @apply bg-black/[0.3];
+    @apply bg-[#22c55e]/90 hover:bg-[#22c55e];
+    @apply shadow-md shadow-[#22c55e]/20;
   }
 </style>
