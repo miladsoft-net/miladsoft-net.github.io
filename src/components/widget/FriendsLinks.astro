@@ -1,0 +1,75 @@
+---
+import WidgetLayout from "./WidgetLayout.astro";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+    class?: string;
+    style?: string;
+}
+
+const { class: className, style } = Astro.props;
+
+// Define friends links
+const friendsLinks = [
+    {
+        name: "Zapton",
+        url: "https://zapton.app",
+        description: "Zapton App",
+    },
+    {
+        name: "Nostr Buzz",
+        url: "https://nostr.buzz",
+        description: "Nostr Buzz",
+    },
+    {
+        name: "Nostr Platform",
+        url: "https://nostrplatform.com",
+        description: "Nostr Platform",
+    },
+    {
+        name: "Nostr ID",
+        url: "https://nostrId.app",
+        description: "Nostr ID App",
+    },
+];
+---
+
+<WidgetLayout
+    name="Friends Links"
+    id="friends-links"
+    class={className}
+    style={style}
+>
+    <div class="flex flex-col gap-3">
+        {
+            friendsLinks.map((link) => (
+                <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="group flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition-all duration-200 border border-neutral-200/50 dark:border-neutral-700/50 hover:border-[var(--primary)]/20"
+                    title={link.description}
+                >
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                        <Icon
+                            name="material-symbols:link"
+                            class="text-white text-sm"
+                        />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-neutral-700 group-hover:text-[var(--primary)] dark:text-neutral-300 dark:group-hover:text-[var(--primary)] truncate transition-colors duration-200">
+                            {link.name}
+                        </div>
+                        <div class="text-xs text-neutral-600 dark:text-neutral-400 truncate">
+                            {link.url.replace(/^https?:\/\//, "")}
+                        </div>
+                    </div>
+                    <Icon
+                        name="fa6-solid:arrow-up-right-from-square"
+                        class="text-neutral-400 dark:text-neutral-500 group-hover:text-[var(--primary)] transition-colors duration-200 text-sm flex-shrink-0"
+                    />
+                </a>
+            ))
+        }
+    </div>
+</WidgetLayout>
