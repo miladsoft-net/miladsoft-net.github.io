@@ -93,7 +93,7 @@
 
     try {
       const response = await fetch(
-        `https://api.getalby.com/lnurl/generate-invoice?ln=milad@getalby.com&amount=${satoshis * 1000}`
+        `https://api.getalby.com/lnurl/generate-invoice?ln=milad@wallet.yakihonne.com&amount=${satoshis * 1000}`
       );
       const data = await response.json();
 
