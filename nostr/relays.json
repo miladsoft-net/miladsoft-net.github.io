@@ -1,0 +1,8 @@
+{
+  "relays": [
+    "wss://relay.nostr.band",
+    "wss://nos.lol",
+    "wss://nostr.mom",
+    "wss://relay.snort.social"
+  ]
+}

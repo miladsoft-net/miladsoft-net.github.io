@@ -1,0 +1,1 @@
+import{w as u}from"./index.ltX0YiLf.js";function f(){const{subscribe:s,update:e}=u([]);let r=0;function t(s,t){const i=++r;e((e=>[...e,{id:i,type:t,message:s}])),setTimeout((()=>{e((s=>s.filter((s=>s.id!==i))))}),3e3)}return{subscribe:s,success:s=>t(s,"success"),error:s=>t(s,"error"),info:s=>t(s,"info"),warning:s=>t(s,"warning")}}const w=f();export{w as t};

@@ -1,0 +1,1 @@
+import{al as b,a0 as e}from"./hydration.DPUQB77u.js";function o(s,r,u){if(null==s)return r(void 0),b;const n=e((()=>s.subscribe(r,u)));return n.unsubscribe?()=>n.unsubscribe():n}export{o as s};
